@@ -1,0 +1,32 @@
+name: vitb14_dinov2_imagenet_noswapopt_lwx5
+output_dir: checkpoints/vitb14_dinov2_imagenet_noswapopt_lwx5
+wandb: False
+spatial_loss:
+  name: 2d_spatial_correlation
+  spatial_weight:
+    blocks.0: 1.25
+    blocks.1: 1.25
+    blocks.2: 1.25
+    blocks.3: 1.25
+    blocks.4: 1.25
+    blocks.5: 1.25
+    blocks.6: 1.25
+    blocks.7: 1.25
+    blocks.8: 1.25
+    blocks.9: 1.25
+    blocks.10: 1.25
+    blocks.11: 1.25
+  position_dir: checkpoints/vitb14_dinov2_imagenet/positions
+variant:
+  name: dinov2
+  architecture: vitb14
+  setup:
+    train: dinov2.train.train.do_train
+    model: dinov2.train.ssl_meta_arch.SSLMetaArch
+    eval_model: dinov2.eval.setup.setup_and_build_model
+    config: dinov2.utils.config.setup
+    eval: dinov2.eval.linear.run_eval_linear
+  params:
+    config: ../dinov2/dinov2/configs/train/vitb14_short.yaml
+    pretrained_weights: checkpoints/vitb14_dinov2_imagenet_noswapopt_lwx5/eval/training_124999/teacher_checkpoint.pth
+    dataset_path: ImageNet:split=TRAIN:root=/data/ynshah/imagenet/:extra=/data/ynshah/imagenet/extra

@@ -1,0 +1,16 @@
+gitpython
+h5py
+matplotlib
+minisom
+numpy
+pandas
+Pillow
+pingouin
+pyyaml
+scikit-image
+scikit-learn
+scipy
+shapely
+torch-lucent
+tqdm
+xarray

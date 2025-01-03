@@ -1,0 +1,32 @@
+name: vitb14_dinov2_imagenet_swapoptx2
+output_dir: checkpoints/vitb14_dinov2_imagenet/positionsx2/swappedon_SineGrating2019/
+wandb: False
+spatial_loss:
+  name: 2d_spatial_correlation
+  spatial_weight:
+    blocks.0: 0.
+    blocks.1: 0.
+    blocks.2: 0.
+    blocks.3: 0.
+    blocks.4: 0.
+    blocks.5: 0.
+    blocks.6: 0.
+    blocks.7: 0.
+    blocks.8: 0.
+    blocks.9: 0.
+    blocks.10: 0.
+    blocks.11: 0.
+  position_dir: checkpoints/vitb14_dinov2_imagenet/positionsx2/swappedon_SineGrating2019
+variant:
+  name: dinov2
+  architecture: vitb14
+  setup:
+    train: dinov2.train.train.do_train
+    model: dinov2.train.ssl_meta_arch.SSLMetaArch
+    eval_model: dinov2.eval.setup.setup_and_build_model
+    config: dinov2.utils.config.setup
+    eval: dinov2.eval.linear.run_eval_linear
+  params:
+    config: ../dinov2/dinov2/configs/train/vitb14_short.yaml
+    pretrained_weights: ../dinov2/checkpoints/task_seed0/eval/training_124999/teacher_checkpoint.pth
+    dataset_path: ImageNet:split=TRAIN:root=/data/ynshah/imagenet/:extra=/data/ynshah/imagenet/extra

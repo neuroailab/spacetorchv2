@@ -1,0 +1,9 @@
+/datasets/
+checkpoints/
+wandb/
+dist/
+build/
+__pycache__/
+spacetorch.egg-info/
+*.ipynb
+*.sh
