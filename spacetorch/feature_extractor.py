@@ -110,6 +110,9 @@ class FeatureExtractor:
         self.layer_feats = {}
         for k, v in layer_results.items():
             self.layer_feats[k] = np.concatenate(v)
+
+            # to use queries, keys, or values from ViT blocks
+            # self.layer_feats[k] = np.concatenate(v).reshape(640, 257, 3, 768).transpose(2, 0, 1, 3)[2]
             
             if len(self.layer_feats[k].shape) == 3:
                 # a hack to refer to outputs from vision transformers,

@@ -1,5 +1,5 @@
-name: vitb14_dinov2_imagenet_noswapopt_lw0
-output_dir: checkpoints/vitb14_dinov2_imagenet_noswapopt_lw0
+name: vitb14_dinov2_imagenet_taskonly
+output_dir: checkpoints/vitb14_dinov2_imagenet_taskonly
 wandb: False
 spatial_loss:
   name: 2d_spatial_correlation
@@ -28,5 +28,5 @@ variant:
     eval: dinov2.eval.linear.run_eval_linear
   params:
     config: ../dinov2/dinov2/configs/train/vitb14_short.yaml
-    pretrained_weights: checkpoints/vitb14_dinov2_imagenet_noswapopt_lw0/eval/training_124999/teacher_checkpoint.pth
+    pretrained_weights: ../dinov2/checkpoints/task_seed0/eval/training_124999/teacher_checkpoint.pth
     dataset_path: ImageNet:split=TRAIN:root=/data/ynshah/imagenet/:extra=/data/ynshah/imagenet/extra
