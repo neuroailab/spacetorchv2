@@ -16,7 +16,7 @@ spatial_loss:
     blocks.9: 0.
     blocks.10: 0.
     blocks.11: 0.
-  position_dir: checkpoints/vitb14_dinov2_imagenet/positions
+  position_dir: checkpoints/vitb14_dinov2_imagenet_taskonly/positions
 variant:
   name: dinov2
   architecture: vitb14

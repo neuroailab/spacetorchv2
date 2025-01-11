@@ -70,7 +70,7 @@ def main():
     model = variant.eval_model
     positions = get_positions(cfg, rescale=False)[args.layer]
 
-    save_dir = Path(cfg.output_dir) / "figures"
+    save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
     v1_tissue = get_sine_tissue(
@@ -78,11 +78,15 @@ def main():
         model,
         positions,
         layer=args.layer,
-        output_dir=save_dir.parent,
+        output_dir=save_dir,
         skip_cache=True,
     )
 
     fig, axs = plt.subplots(ncols=1, nrows=3, figsize=(1, 3))
+
+    with open(save_dir / "positions.txt", "w") as f:
+        for x, y in v1_tissue.positions:
+            f.write(f"{x},{y}\n")
 
     v1_tissue.reset_unit_mask()
     zoom_lims = [[50, 80], [50, 80]]

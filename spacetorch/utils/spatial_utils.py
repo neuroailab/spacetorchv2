@@ -274,7 +274,7 @@ def place_tokens(
     Places units in a model layer
 
     Inputs
-        dims (n,): dimensions of features
+        dims (3,): dimensions of features, (num_feat, x, y)
         pos_lims (2,) or (4,): min and max of cortical sheet, in mm. If two elements,
             limits are symmetrical for rows and columns. If len == 4, they are
             interpreted as [x0, x1, y0, y1]
@@ -283,12 +283,10 @@ def place_tokens(
             0 means no overlap (default), 1 means perfect overlap
     """
 
-    seq_length, hidden_dim = dims  # seq_len: number of patches (+ cls_token)
-    num_x, num_y = np.sqrt(seq_length - 1).astype(int), np.sqrt(seq_length - 1).astype(int)  # number of patches in each row/column
-
+    num_feat, num_x, num_y = dims
     if len(pos_lims) == 2:
-        rf_centers, rf_radius = compute_rf_centers(seq_length, rf_overlap, pos_lims)
-        print('\trf centers:', len(rf_centers))
+        rf_centers, rf_radius = compute_rf_centers(dims, rf_overlap, pos_lims)
+        print('\tnum rf_centers:', len(rf_centers))
         print('\trf_radius:', rf_radius)
         xx, yy = np.meshgrid(rf_centers, rf_centers)
         print('\txx:', xx.shape)
@@ -312,12 +310,12 @@ def place_tokens(
     # the number of channels in the layer
     if offset_pattern == "random":
         offsets = [
-            np.random.uniform(size=(hidden_dim, 2), low=-rf_radius, high=rf_radius)
+            np.random.uniform(size=(num_feat, 2), low=-rf_radius, high=rf_radius)
             for _ in range(len(anchors))
         ]
     elif offset_pattern == "grid":
         offsets = [
-            grid_pattern(hidden_dim, extent=rf_radius) for _ in range(len(anchors))
+            grid_pattern(num_feat, extent=rf_radius) for _ in range(len(anchors))
         ]
     else:
         raise Exception("Offset pattern not recognized")
@@ -358,30 +356,7 @@ def jitter_positions(pos: np.ndarray, jitter: float = 0):
     return jittered_squished - np.min(jittered_squished, axis=0) + np.min(pos, axis=0)
 
 
-def get_token_positions(token_idx, image_size, patch_size):
-    """
-    Find the location of a token in an image. The first token 
-        denotes the top-left patch in the image (0, 0), and 
-        the last token denotes the bottom-right (13, 13).
-
-    Does not try to find positions for the `cls_token`
-    """
-    assert token_idx > 0
-
-    num_patches_per_row = image_size // patch_size
-    positions = []
-
-    patch_index = token_idx - 1
-    row = patch_index // num_patches_per_row
-    col = patch_index % num_patches_per_row
-    x = col * patch_size
-    y = row * patch_size
-    positions.append((x, y))
-
-    return positions
-
-
-def compute_rf_centers(seq_length, rf_overlap, pos_lims):
+def compute_rf_centers(layer_dims, rf_overlap, pos_lims):
     """
     For a model layer, returns rf_centers given layer dimensions
         and receptive field overlap
@@ -402,9 +377,9 @@ def compute_rf_centers(seq_length, rf_overlap, pos_lims):
 
 
     """
-    assert seq_length > 1
+    assert len(layer_dims) > 1
 
-    num_rfs = np.sqrt(seq_length - 1).astype(int)
+    num_rfs = layer_dims[-1]
     map_width = np.ptp(pos_lims)
 
     rf_width = map_width / (num_rfs - (num_rfs * rf_overlap) + rf_overlap)

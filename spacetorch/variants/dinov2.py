@@ -1,5 +1,6 @@
 import argparse
 import json
+import math
 import torch
 import wandb
 import torch.distributed as dist
@@ -22,9 +23,9 @@ class DINOv2(BaseArch):
     
     def get_model_layernames(self):
         if self.base_model:
-            return [f"blocks.{i}" for i in range(len(self.base_model.blocks))]
+            return [f"blocks.{i}.mlp.act" for i in range(len(self.base_model.blocks))]
         else:
-            return [f"blocks.{i}" for i in range(len(self.eval_model.blocks))]
+            return [f"blocks.{i}.mlp.act" for i in range(len(self.eval_model.blocks))]
 
     def set_cfg(self, args):
         variant_cfg_setup = get_fn(args.variant.setup.config)
@@ -70,20 +71,26 @@ class DINOv2(BaseArch):
 
             # Register hooks on the intermediate layers of the model
             for i, block in enumerate(self.student.backbone.blocks):
-                block.register_forward_hook(self.get_hook_fn(i))
-                print(f"Registered hook for blocks.{i}")
+                if i in [2, 3, 4, 11]:
+                    block.mlp.act.register_forward_hook(self.get_hook_fn(i))
+                    print(f"Registered hook for blocks.{i}.mlp.act")
 
             run_name = args.name
             if args.wandb and is_master_process():
                 wandb.init(
-                    project="dinov2_imagenet",
+                    project="dinov2_imagenet_gelu",
                     name=run_name,
                 )
 
         def get_hook_fn(self, layer_idx):
             """Creates a hook function to capture the outputs of a specific layer."""
             def hook_fn(module, input, output):
-                self.intermediate_outputs[layer_idx] = output
+                features, _ = module.attn_bias.split(output)
+                spatial_features = features[:, 1:].float()
+                N, L, H = spatial_features.shape
+                sL = int(math.sqrt(L))
+                spatial_features = spatial_features.reshape(N, sL, sL, H).permute(0, 3, 1, 2)
+                self.intermediate_outputs[layer_idx] = spatial_features
             return hook_fn
 
         def spatial_forward(self, images, teacher_temp):
@@ -92,8 +99,8 @@ class DINOv2(BaseArch):
             loss_accumulator, loss_dict = super(SpatialDINOv2, self).forward(images, teacher_temp)
 
             spatial_outputs = {}
-            for i, [global_features, _] in self.intermediate_outputs.items():
-                spatial_outputs[f'blocks.{i}'] = (global_features[:, 1:].float(), self.positions[f'blocks.{i}'])
+            for i, spatial_features in self.intermediate_outputs.items(): 
+                spatial_outputs[f'blocks.{i}.mlp.act'] = (spatial_features, self.positions[f'blocks.{i}.mlp.act'])
 
             return (loss_accumulator, spatial_outputs), loss_dict
         

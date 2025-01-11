@@ -242,7 +242,7 @@ class Swapper:
         self.dataset_name = dataset_name
 
         # determine initial and new save locations
-        self.initial_dir = Path("checkpoints") / config.name / "positionsx2"
+        self.initial_dir = Path("checkpoints") / config.name / "positions"
 
         # the new save dir _is_ model specific, because the positions now depend on the
         # features. So we need to drill down and make a new folder
@@ -262,7 +262,7 @@ class Swapper:
         if config.wandb:
             wandb.init(
                 project="dinov2_imagenet",
-                name=config.name + "_swapoptx2_" + str(layer),
+                name=config.name + "_swapopt_" + str(layer),
             )
 
     def unblock_overwrite(self):
@@ -278,6 +278,8 @@ class Swapper:
         features = FeatureSaver.load_features(self.feature_path, keys=self.layer)[
             self.layer
         ]
+
+        print("loading features:", features.shape)
 
         # if not already flattened, flatten now
         self.features = features.reshape((len(features), -1))

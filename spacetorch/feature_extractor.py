@@ -119,6 +119,15 @@ class FeatureExtractor:
                 # removing the CLS token
                 self.layer_feats[k] = self.layer_feats[k][:, 1:]
 
+                # reshape features to look like conv outputs
+                # i.e., move num_feats to the second dim
+                # and break down sequence of patches into a grid
+                # of patches representing the visual scene in
+                # a raster-scan (row-major) format.
+                N, L, H = self.layer_feats[k].shape
+                sL = int(math.sqrt(L))
+                self.layer_feats[k] = self.layer_feats[k].reshape(N, sL, sL, H).transpose(0, 3, 1, 2)
+
         # corner case: for a single layer, just return features
         if len(self.layer_feats) == 1:
             self.layer_feats = self.layer_feats[model_layer_strings[0]]
