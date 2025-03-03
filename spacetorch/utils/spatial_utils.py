@@ -61,7 +61,7 @@ def concave_hull(points, alpha):
 
     coords = np.array([point.coords[0] for point in points])
     tri = Delaunay(coords)
-    triangles = coords[tri.vertices]
+    triangles = coords[tri.simplices]
     a = (
         (triangles[:, 0, 0] - triangles[:, 1, 0]) ** 2
         + (triangles[:, 0, 1] - triangles[:, 1, 1]) ** 2

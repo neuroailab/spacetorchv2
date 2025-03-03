@@ -15,6 +15,7 @@ def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str)
     parser.add_argument("--layer", type=str)
+    parser.add_argument("--e", type=int)
     parser.add_argument(
         "opts",
         help="""
@@ -57,7 +58,7 @@ def main():
     model = variant.eval_model
     positions = get_positions(cfg, rescale=False)[args.layer]
 
-    save_dir = Path(cfg.output_dir) / "figures"
+    save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
     v1_tissue = get_sine_tissue(
@@ -65,8 +66,8 @@ def main():
         model,
         positions,
         layer=args.layer,
-        output_dir=save_dir.parent,
-        skip_cache=True,
+        output_dir=save_dir,
+        # skip_cache=True,
     )
 
     density = get_pinwheel_density(v1_tissue)

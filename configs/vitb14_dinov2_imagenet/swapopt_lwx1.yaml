@@ -15,7 +15,7 @@ spatial_loss:
     blocks.9: 0.25
     blocks.10: 0.25
     blocks.11: 0.25
-  position_dir: /ccn2/u/ynshah/spacetorchv2/checkpoints/vitb14_dinov2_imagenet/positions/swappedon_SineGrating2019
+  position_dir: checkpoints/vitb14_dinov2_imagenet/positions/swappedon_SineGrating2019
 swapopt:
   num_steps: 100000000
   steps_per_neighborhood: 500
@@ -27,6 +27,6 @@ variant:
     model: dinov2.train.ssl_meta_arch.SSLMetaArch
     config: dinov2.utils.config.setup
   params:
-    config: /ccn2/u/ynshah/dinov2/dinov2/configs/train/vitb14_short.yaml
+    config: ../dinov2/dinov2/configs/train/vitb14_short.yaml
     pretrained_weights: ""
     dataset_path: ImageNet:split=TRAIN:root=/data/ynshah/imagenet/:extra=/data/ynshah/imagenet/extra

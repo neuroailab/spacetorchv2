@@ -7,6 +7,7 @@ import torch.distributed as dist
 from pathlib import Path
 
 from spacetorch.configs.dotpath import get_fn
+from spacetorch.utils.torch_utils import resolve_sequential_module_from_str
 from spacetorch.utils.generic_utils import convert_to_serializable
 from spacetorch.variants.base_arch import BaseArch
 from spacetorch.variants.positions import NetworkPositions
@@ -21,11 +22,8 @@ class DINOv2(BaseArch):
     def __init__(self):
         super().__init__()
     
-    def get_model_layernames(self):
-        if self.base_model:
-            return [f"blocks.{i}.mlp.act" for i in range(len(self.base_model.blocks))]
-        else:
-            return [f"blocks.{i}.mlp.act" for i in range(len(self.eval_model.blocks))]
+    def get_model_layernames(self, args):
+        return list(args.spatial_loss.spatial_weight.keys())
 
     def set_cfg(self, args):
         variant_cfg_setup = get_fn(args.variant.setup.config)
@@ -61,6 +59,7 @@ class DINOv2(BaseArch):
 
     def set_model(self, args):
         variant_model_class = get_fn(args.variant.setup.model)
+        layernames = self.get_model_layernames(args)
 
         def spatial_init(self, cfg, positions):
             super(SpatialDINOv2, self).__init__(cfg)
@@ -70,27 +69,30 @@ class DINOv2(BaseArch):
             self.intermediate_outputs = {}
 
             # Register hooks on the intermediate layers of the model
-            for i, block in enumerate(self.student.backbone.blocks):
-                if i in [2, 3, 4, 11]:
-                    block.mlp.act.register_forward_hook(self.get_hook_fn(i))
-                    print(f"Registered hook for blocks.{i}.mlp.act")
+            for layername in layernames:
+                layer = resolve_sequential_module_from_str(self.student.backbone, layername)
+                layer.register_forward_hook(self.get_hook_fn(layername))
+                print(f"Registered hook for {layername}")
 
             run_name = args.name
             if args.wandb and is_master_process():
                 wandb.init(
-                    project="dinov2_imagenet_gelu",
+                    project="dinov2_imagenet",
                     name=run_name,
                 )
 
-        def get_hook_fn(self, layer_idx):
+        def get_hook_fn(self, layername):
             """Creates a hook function to capture the outputs of a specific layer."""
             def hook_fn(module, input, output):
-                features, _ = module.attn_bias.split(output)
+                if "attn" in layername:
+                    features, _ = module.attn_bias.split(output)
+                else:
+                    [features, _] = output
                 spatial_features = features[:, 1:].float()
                 N, L, H = spatial_features.shape
                 sL = int(math.sqrt(L))
                 spatial_features = spatial_features.reshape(N, sL, sL, H).permute(0, 3, 1, 2)
-                self.intermediate_outputs[layer_idx] = spatial_features
+                self.intermediate_outputs[layername] = spatial_features
             return hook_fn
 
         def spatial_forward(self, images, teacher_temp):
@@ -99,8 +101,8 @@ class DINOv2(BaseArch):
             loss_accumulator, loss_dict = super(SpatialDINOv2, self).forward(images, teacher_temp)
 
             spatial_outputs = {}
-            for i, spatial_features in self.intermediate_outputs.items(): 
-                spatial_outputs[f'blocks.{i}.mlp.act'] = (spatial_features, self.positions[f'blocks.{i}.mlp.act'])
+            for layername, spatial_features in self.intermediate_outputs.items(): 
+                spatial_outputs[layername] = (spatial_features, self.positions[layername])
 
             return (loss_accumulator, spatial_outputs), loss_dict
         
@@ -112,20 +114,20 @@ class DINOv2(BaseArch):
                 joint_loss = loss_accumulator
                 
                 spatial_losses = {}
-                for layer, layer_output in spatial_outputs.items():
+                for layername, layer_output in spatial_outputs.items():
                     features, pos = layer_output
 
-                    spatial_losses[layer] = spatial_correlation_loss(
+                    spatial_losses[layername] = spatial_correlation_loss(
                         features.cuda(),
                         pos.coordinates.cuda(),
                         pos.neighborhood_indices.cuda(),
                     )
 
                     if dist.get_world_size() > 1:
-                        dist.all_reduce(spatial_losses[layer])
-                    spatial_losses[layer] = spatial_losses[layer] / dist.get_world_size()
+                        dist.all_reduce(spatial_losses[layername])
+                    spatial_losses[layername] = spatial_losses[layername] / dist.get_world_size()
                     
-                    joint_loss += args.spatial_loss.spatial_weight[layer] * spatial_losses[layer]
+                    joint_loss += args.spatial_loss.spatial_weight[layername] * spatial_losses[layername]
 
                 if self.iteration_counter % 10 == 0:
                     if is_master_process():

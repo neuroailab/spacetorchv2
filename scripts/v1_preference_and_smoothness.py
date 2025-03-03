@@ -126,7 +126,7 @@ def main():
     model = variant.eval_model
     positions = get_positions(cfg, rescale=False)[args.layer]
 
-    save_dir = Path(cfg.output_dir) / "figures"
+    save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
     v1_tissue = get_sine_tissue(
@@ -134,15 +134,14 @@ def main():
         model,
         positions,
         layer=args.layer,
-        output_dir=save_dir.parent,
-        skip_cache=True,
+        output_dir=save_dir,
+        # skip_cache=True,
     )
 
     # macaque_tissue = get_macaque_tissues()
     # smoothness_results, curve_dict = get_smoothness(0.75, macaque_tissue, "macaque")
 
     smoothness_results, curve_dict = get_smoothness(3.5, v1_tissue, "not macaque")
-    print(curve_dict)
     np.save(save_dir / "v1_smoothness.npy", smoothness_results)
     np.savez(save_dir / "v1_preference.npz", **curve_dict)
 

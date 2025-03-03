@@ -106,7 +106,7 @@ def plot_mean_responses(tissue: TissueMap, save_dir: Path):
     colors = [nauhaus_colormaps["angles"](o / 180) for o in [0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5]]
     _, axs = plt.subplots(1, 1, figsize=(10, 3))
     for i, _o in enumerate(otc):
-        axs.plot(_o[10_000:12_000], color=colors[i])
+        axs.plot(_o[10_000:10_010], color=colors[i])
     axs.set_xticks([])
     axs.set_xlabel("Units")
     axs.set_ylabel("Mean response")
@@ -182,20 +182,20 @@ def main():
     model = variant.eval_model
 
     layers = [
-        ("blocks.2.norm1", "A"),
-        ("blocks.2.attn.q", "B"),
-        ("blocks.2.attn.k", "C"),
-        ("blocks.2.attn.v", "D"),
-        ("blocks.2.attn", "E"),
-        ("blocks.2.norm2", "F"),
-        ("blocks.2.mlp.fc1", "G"),
+        # ("blocks.2.norm1", "A"),
+        # ("blocks.2.attn.q", "B"),
+        # ("blocks.2.attn.k", "C"),
+        # ("blocks.2.attn.v", "D"),
+        # ("blocks.2.attn", "E"),
+        # ("blocks.2.norm2", "F"),
+        # ("blocks.2.mlp.fc1", "G"),
         ("blocks.2.mlp.act", "H"),
-        ("blocks.2.mlp.fc2", "I"),
-        ("blocks.2", "J"),
+        # ("blocks.2.mlp.fc2", "I"),
+        # ("blocks.2", "J"),
     ]
     labels = [label for _, label in layers]
 
-    plot_brainscore(Path(cfg.output_dir))
+    # plot_brainscore(Path(cfg.output_dir))
 
     fig1, axs1 = plt.subplots(1, 2, figsize=(7, 2))
     fig2, axs2 = plt.subplots(1, 2, figsize=(7, 2))
@@ -204,7 +204,7 @@ def main():
     per_selective_all, card_ind_all = [], []
 
     for i, (layer, label) in enumerate(layers):
-        save_dir = Path(cfg.output_dir) / layer
+        save_dir = Path(cfg.output_dir) / (layer)
         save_dir.mkdir(parents=True, exist_ok=True)
 
         tissue = get_sine_tissue(
@@ -218,43 +218,43 @@ def main():
         plot_mean_responses(tissue, save_dir)
         plot_tuning_curves(tissue, save_dir)
 
-        data1 = get_cv(tissue)
-        sns.lineplot(x=data1["cv"], y=data1["per_units"], color=colors[i], label=label, ax=axs1[0], zorder=(10-i), marker="o", legend=False)
-        per_selective_all.append(data1["per_selective"])
+    #     data1 = get_cv(tissue)
+    #     sns.lineplot(x=data1["cv"], y=data1["per_units"], color=colors[i], label=label, ax=axs1[0], zorder=(10-i), marker="o", legend=False)
+    #     per_selective_all.append(data1["per_selective"])
 
-        data2 = get_preferred_orientations(tissue)
-        sns.lineplot(x=data2["orientation"], y=data2["per_units"], color=colors[i], label=label, ax=axs2[0], zorder=(10-i), marker="o", legend=False)
-        card_ind_all.append(data2["card_ind"])
+    #     data2 = get_preferred_orientations(tissue)
+    #     sns.lineplot(x=data2["orientation"], y=data2["per_units"], color=colors[i], label=label, ax=axs2[0], zorder=(10-i), marker="o", legend=False)
+    #     card_ind_all.append(data2["card_ind"])
 
-    axs1[0].set_yticks([0, 0.2, 0.4, 0.6, 0.8])
-    axs1[0].set_ylim([-0.03, 0.9])
-    axs1[0].set_ylabel("Fraction of Units")
-    axs1[0].set_xlabel("Circular Variance")
-    sns.barplot(x=labels, y=per_selective_all, palette=colors, ax=axs1[1])
-    axs1[1].set_ylabel("Fraction of Orientation\nSelective Units")
-    axs1[1].set_ylim([-0.03, 0.55])
-    axs1[1].set_yticks([0, 0.2, 0.4])
-    axs1[1].set_xticks([])
+    # axs1[0].set_yticks([0, 0.2, 0.4, 0.6, 0.8])
+    # axs1[0].set_ylim([-0.03, 0.9])
+    # axs1[0].set_ylabel("Fraction of Units")
+    # axs1[0].set_xlabel("Circular Variance")
+    # sns.barplot(x=labels, y=per_selective_all, palette=colors, ax=axs1[1])
+    # axs1[1].set_ylabel("Fraction of Orientation\nSelective Units")
+    # axs1[1].set_ylim([-0.03, 0.55])
+    # axs1[1].set_yticks([0, 0.2, 0.4])
+    # axs1[1].set_xticks([])
 
-    sns.despine(fig=fig1)
-    fig1.subplots_adjust(wspace=0.5)
-    fig1.savefig(Path(cfg.output_dir) / "cv_choices.png", dpi=300, bbox_inches="tight", transparent=True)
+    # sns.despine(fig=fig1)
+    # fig1.subplots_adjust(wspace=0.5)
+    # fig1.savefig(Path(cfg.output_dir) / "cv_choices.png", dpi=300, bbox_inches="tight", transparent=True)
 
 
-    axs2[0].set_yticks([0, 0.2, 0.4])
-    axs2[0].set_ylim([-0.03, 0.5])
-    axs2[0].set_ylabel("Fraction of Units")
-    axs2[0].set_xlabel("Preferred Orientations")
-    axs2[0].set_xticks([0, 45, 90, 135, 180])
-    sns.barplot(x=labels, y=card_ind_all, palette=colors, ax=axs2[1])
-    axs2[1].set_ylabel("Cardinality Index")
-    axs2[1].set_ylim([-0.03, 1.1])
-    axs2[1].set_yticks([0, 0.5, 1])
-    axs2[1].set_xticks([])
+    # axs2[0].set_yticks([0, 0.2, 0.4])
+    # axs2[0].set_ylim([-0.03, 0.5])
+    # axs2[0].set_ylabel("Fraction of Units")
+    # axs2[0].set_xlabel("Preferred Orientations")
+    # axs2[0].set_xticks([0, 45, 90, 135, 180])
+    # sns.barplot(x=labels, y=card_ind_all, palette=colors, ax=axs2[1])
+    # axs2[1].set_ylabel("Cardinality Index")
+    # axs2[1].set_ylim([-0.03, 1.1])
+    # axs2[1].set_yticks([0, 0.5, 1])
+    # axs2[1].set_xticks([])
 
-    sns.despine(fig=fig2)
-    fig2.subplots_adjust(wspace=0.5)
-    fig2.savefig(Path(cfg.output_dir) / "pref_orientation_choices.png", dpi=300, bbox_inches="tight", transparent=True)
+    # sns.despine(fig=fig2)
+    # fig2.subplots_adjust(wspace=0.5)
+    # fig2.savefig(Path(cfg.output_dir) / "pref_orientation_choices.png", dpi=300, bbox_inches="tight", transparent=True)
 
 
 if __name__ == "__main__":

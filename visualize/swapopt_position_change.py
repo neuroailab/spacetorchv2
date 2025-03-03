@@ -7,7 +7,7 @@ import seaborn as sns
 from pathlib import Path
 
 from spacetorch.constants import V1_SIZE, V2_SIZE, V4_SIZE, VTC_SIZE
-from spacetorch.variants.positions import BRAIN_MAPPING
+from spacetorch.variants.positions import BRAIN_MAPPING, LayerPositions
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -29,15 +29,30 @@ def get_normalization_constant(layer):
     '''
     region = BRAIN_MAPPING[args.architecture][layer]
     if region == "V1":
-        return V1_SIZE
+        return V1_SIZE / 1.5
     elif region == "V2":
-        return V2_SIZE
+        return V2_SIZE / 1.75
     elif region == "V4":
-        return V4_SIZE
+        return V4_SIZE / 1.4
     elif region == "VTC":
-        return VTC_SIZE
+        return VTC_SIZE / 7
     else:
         return 1
+    
+
+def get_pos(f):
+    def _scalar(x):
+        return x[()]
+    
+    state = np.load(f)
+
+    return LayerPositions(
+        name=_scalar(state["name"]),
+        dims=state["dims"],
+        coordinates=state["coordinates"],
+        neighborhood_indices=state["neighborhood_indices"],
+        neighborhood_width=_scalar(state["neighborhood_width"]),
+    )
 
 
 def plot_distances(df):
@@ -67,14 +82,14 @@ def main():
         normalization_constant = get_normalization_constant(layer)
 
         # pre-swapopt positions
-        old_positions_path = Path(args.positions_dir) / (layer + ".pkl")
+        old_positions_path = Path(args.positions_dir) / (layer + ".npz")
         with open(old_positions_path, 'rb') as f:
-            old_positions = pickle.load(f).coordinates / normalization_constant
+            old_positions = get_pos(f).coordinates / normalization_constant
         
         # post-swapopt positions
-        new_positions_path = Path(args.swapopt_positions_dir) / (layer + ".pkl")
+        new_positions_path = Path(args.swapopt_positions_dir) / (layer + ".npz")
         with open(new_positions_path, 'rb') as f:
-            new_positions = pickle.load(f).coordinates / normalization_constant
+            new_positions = get_pos(f).coordinates / normalization_constant
         
         # Euclidean distance
         l2_distance = np.linalg.norm(new_positions - old_positions, ord=2, axis=1)
@@ -91,6 +106,6 @@ def main():
 if __name__ == "__main__":
     """
     Example usage:
-    python3 visualize/swapopt_position_change.py --positions_dir checkpoints/vitb14_dinov2_imagenet/positions --swapopt_positions_dir checkpoints/vitb14_dinov2_imagenet/positions/swappedon_SineGrating2019 --output_dir=checkpoints/vitb14_dinov2_imagenet --architecture vitb14 --layers blocks.0 blocks.1 blocks.2 blocks.3 blocks.4 blocks.5 blocks.6 blocks.7 blocks.8 blocks.9 blocks.10 blocks.11
+    python3 visualize/swapopt_position_change.py --positions_dir checkpoints/vitb14_dinov2_imagenet/positions --swapopt_positions_dir checkpoints/vitb14_dinov2_imagenet/positions/swappedon_SineGrating2019 --architecture vitb14 --layers blocks.0 blocks.1 blocks.2 blocks.3 blocks.4 blocks.5 blocks.6 blocks.7 blocks.8 blocks.9 blocks.10 blocks.11
     """
     main()

@@ -16,6 +16,7 @@ def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str)
     parser.add_argument("--layer", type=str)
+    parser.add_argument("--e", type=int)
     parser.add_argument(
         "opts",
         help="""
@@ -106,7 +107,8 @@ def main():
     model = variant.eval_model
     positions = get_positions(cfg, rescale=False)[args.layer]
 
-    save_dir = Path(cfg.output_dir) / "figures"
+
+    save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
     v1_tissue = get_sine_tissue(
@@ -114,11 +116,12 @@ def main():
         model,
         positions,
         layer=args.layer,
-        output_dir=save_dir.parent,
-        skip_cache=True,
+        output_dir=save_dir,
+        # skip_cache=True,
     )
 
     data = get_circular_variance(v1_tissue, args.layer)
+    print(data)
     np.savez(save_dir / "circular_variance.npz", **data)
 
     _, axs = plt.subplots(1, 2, figsize=(3, 1.5), constrained_layout=True)
@@ -127,9 +130,11 @@ def main():
     axs[0].set_xlabel("CV")
     axs[0].set_yticks([0, 50, 100], [0, 50, 100])
     axs[0].set_xticks([0.4, 0.6, 0.8], [0.4, 0.6, 0.8])
-    axs[1].bar([""], [data["per_selective"]], color='black')
+    b = axs[1].bar([""], [data["per_selective"]], color='black')
+    for rect in b:
+        height = rect.get_height()
+        axs[1].text(rect.get_x() + rect.get_width() / 2.0, height, f'{height:.3f}', ha='center', va='bottom', fontsize=7)
     axs[1].set_ylabel("% Selective")
-    axs[1].set_yticks([0, 20, 40], [0, 20, 40])
     plt.savefig(save_dir / "circular_variance.png", bbox_inches="tight", dpi=300)
     
 

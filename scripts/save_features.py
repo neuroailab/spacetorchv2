@@ -39,7 +39,7 @@ def main():
     variant.set_eval_model(cfg)
 
     model = variant.eval_model
-    layer_names = variant.get_model_layernames()
+    layer_names = variant.get_model_layernames(cfg)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(device)

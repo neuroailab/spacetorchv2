@@ -16,7 +16,6 @@ from spacetorch.utils import spatial_utils
 def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str)
-    parser.add_argument("--layers", nargs="+")
     return parser
 
 
@@ -32,10 +31,16 @@ def main():
     model = variant.eval_model
     dataset = DatasetRegistry.get("ImageNet")
 
-    layers = args.layers
-    widths = [5, 5, 5, 5, 40, 40]
+    layers = [f"blocks.{i}" for i in range(40)]
+    widths = [5, 5, 5, 5, 5, 5, 5, 40, 40, 40, 40]
 
-    for i, layer in enumerate(layers):
+    save_path = Path(cfg.output_dir)
+    save_path.mkdir(parents=True, exist_ok=True)
+
+    plt.figure(figsize=(5, 5))
+    colors = sns.color_palette("Greys", n_colors=11)
+
+    for i, (layer, width) in enumerate(zip(layers, widths)):
         features = get_features_from_layer(
             model,
             dataset,
@@ -51,41 +56,29 @@ def main():
             features, position_dict[layer].coordinates
         )
 
-        save_path = Path(cfg.output_dir) / "figures"
-        save_path.mkdir(parents=True, exist_ok=True)
+        tissue.reset_unit_mask()
 
-        plt.figure(figsize=(5, 5))
-        colors = sns.color_palette("rainbow", n_colors=40)
+        window_params = spatial_utils.WindowParams(
+            width=width / 2,
+            window_number_limit=1,
+            edge_buffer=0,
+            unit_number_limit=1000,
+        )
 
-        for width in list(range(widths[i], 201, 5)):
-            tissue.reset_unit_mask()
+        distances, curves = tissue.correlation_over_distance(
+            window_params=window_params,
+            normalize_x_axis=True,
+        )
 
-            window_params = spatial_utils.WindowParams(
-                width=width / 2,
-                window_number_limit=1,
-                edge_buffer=0,
-                unit_number_limit=1000,
-            )
+        plt.plot(distances, np.mean(curves, axis=0), color=colors[i], label=layer)
 
-            try:
-                distances, curves = tissue.correlation_over_distance(
-                    window_params=window_params,
-                    normalize_x_axis=True,
-                )
-
-                plt.plot(distances, np.mean(curves, axis=0), color=colors[width // 5], label=width)
-
-                plt.legend(fontsize=5)
-                plt.savefig(save_path, dpi=300, bbox_inches='tight')
-            except:
-                break
-
-            # np.savez(save_path / f"response_similarity_{layer}.png", distances=distances, curves=curves)
+    plt.legend(fontsize=5)
+    plt.savefig(save_path / "response_similarity.png", dpi=300, bbox_inches='tight')
 
 
 if __name__ == "__main__":
     """
     Example usage:
-    python3 scripts/response_similarity.py --config configs/analysis_configs/vitb14_dinov2_imagenet_unoptimized.yaml --layers blocks.1 blocks.2 blocks.4 blocks.5 blocks.6 blocks.7 blocks.8 blocks.9 blocks.10 blocks.11
+    python3 scripts/response_similarity.py --config configs/analysis_configs/vitb14_dinov2_imagenet_unoptimized.yaml
     """
     main()

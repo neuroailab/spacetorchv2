@@ -45,7 +45,8 @@ class TDANN(BaseArch):
 
     def set_eval_model(self, args):
         eval_model = resnet18()
-        self._load_pretrained_weights(args, eval_model)
+        if args.variant.params.pretrained_weights:
+            self._load_pretrained_weights(args, eval_model)
         eval_model.eval()
         eval_model.to(self.device)
         self.eval_model = eval_model

@@ -14,6 +14,7 @@ def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str)
     parser.add_argument("--layer", type=str)
+    parser.add_argument("--e", type=int)
     parser.add_argument(
         "opts",
         help="""
@@ -107,7 +108,7 @@ def main():
     model = variant.eval_model
     positions = get_positions(cfg, rescale=False)[args.layer]
 
-    save_dir = Path(cfg.output_dir) / "figures"
+    save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
     v1_tissue = get_sine_tissue(
@@ -115,12 +116,13 @@ def main():
         model,
         positions,
         layer=args.layer,
-        output_dir=save_dir.parent,
-        skip_cache=True
+        output_dir=save_dir,
+        # skip_cache=True
     )
 
     data = get_preferred_orientations(v1_tissue, args.layer)
     # data = get_macaque_data()
+    print(data)
     np.savez(save_dir / "preferred_orientations.npz", **data)
 
     _, axs = plt.subplots(1, 2, figsize=(3, 1.5), constrained_layout=True)
@@ -128,7 +130,10 @@ def main():
     axs[0].set_ylabel("% Units")
     axs[0].set_xlabel("Preferred Orientations")
     axs[0].set_xticks([0, 50, 100, 150])
-    axs[1].bar([""], [data["card_ind"]], color='black')
+    b = axs[1].bar([""], [data["card_ind"]], color='black')
+    for rect in b:
+        height = rect.get_height()
+        axs[1].text(rect.get_x() + rect.get_width() / 2.0, height, f'{height:.3f}', ha='center', va='bottom', fontsize=7)
     axs[1].set_ylabel("Cardinality Index")
     axs[1].set_yticks([0, 0.5, 1.0])
     plt.savefig(save_dir / f"preferred_orientations_{args.layer}.png", bbox_inches="tight", dpi=300)

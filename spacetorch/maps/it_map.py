@@ -30,7 +30,7 @@ class ITMap(TissueMap):
     def find_patches(
         self,
         contrast: Contrast,
-        threshold: float = 2,
+        t: int = 95,
         minimum_size: float = 100,
         maximum_size: float = 4500,
         min_count: int = 10,
@@ -38,7 +38,8 @@ class ITMap(TissueMap):
             [np.ndarray, np.ndarray], np.ndarray
         ] = array_utils.tstat,
         verbose: bool = False,
-        output_dir: str = "checkpoints/"
+        skip_cache: bool = False,
+        output_dir: Path = "checkpoints/"
     ):
         """
         Arguments:
@@ -53,13 +54,13 @@ class ITMap(TissueMap):
         cache_probe = (
             f"{self.cache_id}"
             f"_{contrast.name}_"
-            f"thr{threshold:.2f}_"
+            f"thr{t:.2f}_"
             f"min{minimum_size}_"
             f"max{maximum_size}_"
             f"mc{min_count}"
         )
-        cache_loc = output_dir / f"patches_{cache_probe}.pkl"
-        if cache_loc.exists():
+        cache_loc = output_dir / "cache" / f"patches_{cache_probe}.pkl"
+        if cache_loc.exists() and not skip_cache:
             if verbose:
                 print(f"Loading from cache {cache_loc}")
             patches = generic_utils.load_pickle(cache_loc)
@@ -68,6 +69,8 @@ class ITMap(TissueMap):
             sel = self.responses.selectivity(
                 selectivity_fn=selectivity_fn, on_categories=contrast.on_categories
             )
+
+            threshold = np.percentile(sel, t)
 
             # create smoothing anchors
             n_anchors = 100

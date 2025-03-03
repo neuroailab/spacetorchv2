@@ -30,6 +30,10 @@ _DATASETS = {
         ImageNetData,
         (paths.DEFAULT_IMAGENET_VAL_DIR, IMAGENET_TRANSFORMS),
     ),
+    "ImageNet_train": (
+        ImageNetData,
+        (paths.DEFAULT_IMAGENET_TRAIN_DIR, IMAGENET_TRANSFORMS),
+    ),
     "RetinalWaves": (RetinalWaveData, (DEFAULT_RWAVE_DIRS, DEFAULT_TRANSFORMS)),
     "noise": (NoiseImages, (640, NOISE_TRANSFORMS)),
 }

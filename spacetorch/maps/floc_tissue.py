@@ -3,9 +3,8 @@ import copy
 import matplotlib.pyplot as plt
 import numpy as np
 import torch.nn as nn
-from pathlib import Path
 
-from spacetorch.datasets import floc
+from spacetorch.datasets import DatasetRegistry, floc
 from spacetorch.maps.it_map import ITMap
 from spacetorch.variants.positions import LayerPositions
 from spacetorch.utils.generic_utils import load_pickle, write_pickle
@@ -17,10 +16,11 @@ def get_floc_responses(
     layers,
     verbose: bool = True,
 ) -> floc.fLocResponses:
+    dataset = DatasetRegistry.get("fLoc")
     floc_features, _, floc_labels = get_features_from_layer(
         model,
-        "fLoc",
-        layers=layers,
+        dataset,
+        model_layer_strings=layers,
         verbose=verbose,
         return_inputs_and_labels=True
     )
@@ -33,6 +33,7 @@ def get_floc_tissue(
     model: nn.Module,
     positions: LayerPositions,
     layer: str = "blocks.11",
+    skip_cache = False,
     output_dir: str = "checkpoints/",
     **kwargs,
 ):
@@ -49,9 +50,9 @@ def get_floc_tissue(
         step: either 'latest' or an epoch to load from
     """
     cache_id = name
-    cache_loc = output_dir / "floc_responses.pkl"
+    cache_loc = output_dir / "cache"  / "floc_responses.pkl"
     try:
-        if cache_loc.exists():
+        if cache_loc.exists() and not skip_cache:
             responses = load_pickle(cache_loc)
             print(f"Loaded {cache_id} from cache")
         else:

@@ -70,7 +70,7 @@ def main():
     model = variant.eval_model
     positions = get_positions(cfg, rescale=False)[args.layer]
 
-    save_dir = Path(cfg.output_dir) / "figures"
+    save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
     v1_tissue = get_sine_tissue(
@@ -78,8 +78,8 @@ def main():
         model,
         positions,
         layer=args.layer,
-        output_dir=save_dir.parent,
-        skip_cache=True,
+        output_dir=save_dir,
+        # skip_cache=True,
     )
 
     lims = [5, 95]
@@ -87,7 +87,7 @@ def main():
 
     for name, metric in METRIC_DICT.items():
         smoothed = get_smoothed_map(
-            v1_tissue, metric, final_width=1.5, final_stride=0.15, verbose=True  # 1.5, 0.15
+            v1_tissue, metric, final_width=1.5, final_stride=0.15, verbose=True
         )
 
         _, ax = plt.subplots(1, 1, figsize=(1, 1))
@@ -103,12 +103,12 @@ def main():
         px_per_mm = total_px / total_mm
         add_scale_bar(ax, 10 * px_per_mm, flipud=True)
         
-        plt.savefig(save_dir / f"smoothed_map_{name}_{args.layer}.png", dpi=300, bbox_inches="tight", transparent=True)
+        plt.savefig(save_dir / f"smoothed_map_{name}.png", dpi=300, bbox_inches="tight", transparent=True)
 
 
 if __name__ == "__main__":
     """
     Example usage:
-    python3 visualize/smoothed_opm.py --config configs/analysis_configs/vitb14_dinov2_imagenet_unoptimized.yaml --layer blocks.2
+    python3 visualize/v1_smoothed_opm.py --config configs/analysis_configs/vitb14_dinov2_imagenet_unoptimized.yaml --layer blocks.2
     """
     main()

@@ -57,6 +57,8 @@ class Patch:
         join them (with zip) into a set of (x, y) tuples, then cast to a list and
         finally a numpy array
         """
+        if self.concave_hull.geom_type == "MultiPolygon":
+            self.concave_hull = self.concave_hull.geoms[0]
         return np.array(list(zip(*self.concave_hull.exterior.coords.xy)))
 
     def __repr__(self) -> str:

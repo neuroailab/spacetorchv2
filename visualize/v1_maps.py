@@ -14,6 +14,7 @@ def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str)
     parser.add_argument("--layer", type=str)
+    parser.add_argument("--e", type=int)
     parser.add_argument(
         "opts",
         help="""
@@ -79,38 +80,38 @@ def main():
         positions,
         layer=args.layer,
         output_dir=save_dir,
-        skip_cache=True,
+        # skip_cache=True,
     )
 
     fig, axs = plt.subplots(ncols=1, nrows=3, figsize=(1, 3))
 
-    with open(save_dir / "positions.txt", "w") as f:
-        for x, y in v1_tissue.positions:
-            f.write(f"{x},{y}\n")
+    # with open(save_dir / "positions.txt", "w") as f:
+    #     for x, y in v1_tissue.positions:
+    #         f.write(f"{x},{y}\n")
 
     v1_tissue.reset_unit_mask()
-    zoom_lims = [[50, 80], [50, 80]]
-    v1_tissue.set_mask_by_pct_limits(zoom_lims)
+    # zoom_lims = [[50, 60], [50, 60]]
+    # v1_tissue.set_mask_by_pct_limits(zoom_lims)
 
     for (_, metric), ax in zip(METRIC_DICT.items(), axs):
         _ = v1_tissue.make_parameter_map(
-            ax, metric=metric, linewidths=0, edgecolor=(0, 0, 0, 0.5), rasterized=True, final_s=1
+            ax, metric=metric, linewidths=0, edgecolor=(0, 0, 0, 0.5), rasterized=True, final_s=0.4
         )
 
         ax.axis("off")
 
         cbar = add_sine_colorbar(fig, ax, metric, label=metric.xlabel)
-        cbar.ax.tick_params(labelsize=5)
-        cbar.set_label(label="", fontsize=8)
+        cbar.ax.tick_params(labelsize=7)
+        cbar.set_label(label="", fontsize=10)
 
-    add_scale_bar(axs[-1], width=2)
+    # add_scale_bar(axs[-1], width=2)
     
-    plt.savefig(save_dir / f"v1_maps_{args.layer}.png", dpi=300, bbox_inches="tight", transparent=True)
+    plt.savefig(save_dir / f"v1_maps_full.png", dpi=300, bbox_inches="tight", transparent=True)
 
 
 if __name__ == "__main__":
     """
     Example usage:
-    python3 visualize/v1_maps.py --config configs/analysis_configs/vitb14_dinov2_imagenet_unoptimized.yaml  --layer blocks.1 output_dir=checkpoints/vitb14_dinov2_imagenet_unoptimized
+    python3 visualize/v1_maps.py --config configs/analysis_configs/vitb14_dinov2_imagenet_unoptimized.yaml --layer blocks.1
     """
     main()
