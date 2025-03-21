@@ -28,5 +28,5 @@ variant:
     config: dinov2.utils.config.setup
   params:
     config: ../dinov2/dinov2/configs/train/vitb14_short.yaml
-    pretrained_weights: ""
+    pretrained_weights: checkpoints/
     dataset_path: ImageNet:split=TRAIN:root=/data/ynshah/imagenet/:extra=/data/ynshah/imagenet/extra

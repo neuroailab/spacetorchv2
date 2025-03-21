@@ -1,6 +1,7 @@
 from .base_arch import BaseArch
-from .dinov2 import DINOv2
 from .tdann import TDANN
+from .dinov2 import DINOv2
+from .mocov3 import MoCov3
 
 
 OUTPUT_DIMS_FOR_224_INPUTS = {
@@ -30,36 +31,53 @@ OUTPUT_DIMS_FOR_224_INPUTS = {
     },
     "vitb14am": {
         "blocks.0.attn": (768, 16, 16),
-        "blocks.0.mlp": (768, 16, 16),
         "blocks.1.attn": (768, 16, 16),
-        "blocks.1.mlp": (768, 16, 16),
         "blocks.2.attn": (768, 16, 16),
-        "blocks.2.mlp": (768, 16, 16),
         "blocks.3.attn": (768, 16, 16),
-        "blocks.3.mlp": (768, 16, 16),
         "blocks.4.attn": (768, 16, 16),
-        "blocks.4.mlp": (768, 16, 16),
         "blocks.5.attn": (768, 16, 16),
-        "blocks.5.mlp": (768, 16, 16),
         "blocks.6.attn": (768, 16, 16),
-        "blocks.6.mlp": (768, 16, 16),
         "blocks.7.attn": (768, 16, 16),
-        "blocks.7.mlp": (768, 16, 16),
         "blocks.8.attn": (768, 16, 16),
-        "blocks.8.mlp": (768, 16, 16),
         "blocks.9.attn": (768, 16, 16),
-        "blocks.9.mlp": (768, 16, 16),
         "blocks.10.attn": (768, 16, 16),
-        "blocks.10.mlp": (768, 16, 16),
         "blocks.11.attn": (768, 16, 16),
-        "blocks.11.mlp": (768, 16, 16),
-    }
+    },
+    "vitb16": {
+        "blocks.0": (768, 14, 14),
+        "blocks.1": (768, 14, 14),
+        "blocks.2": (768, 14, 14),
+        "blocks.3": (768, 14, 14),
+        "blocks.4": (768, 14, 14),
+        "blocks.5": (768, 14, 14),
+        "blocks.6": (768, 14, 14),
+        "blocks.7": (768, 14, 14),
+        "blocks.8": (768, 14, 14),
+        "blocks.9": (768, 14, 14),
+        "blocks.10": (768, 14, 14),
+        "blocks.11": (768, 14, 14),
+    },
+    "vitb16a": {
+        "blocks.0.attn": (768, 14, 14),
+        "blocks.1.attn": (768, 14, 14),
+        "blocks.2.attn": (768, 14, 14),
+        "blocks.3.attn": (768, 14, 14),
+        "blocks.4.attn": (768, 14, 14),
+        "blocks.5.attn": (768, 14, 14),
+        "blocks.6.attn": (768, 14, 14),
+        "blocks.7.attn": (768, 14, 14),
+        "blocks.8.attn": (768, 14, 14),
+        "blocks.9.attn": (768, 14, 14),
+        "blocks.10.attn": (768, 14, 14),
+        "blocks.11.attn": (768, 14, 14),
+    },
 }
 
 
 VARIANT_MAPPING = {
-    "dinov2": DINOv2(),
     "tdann": TDANN(),
+    "dinov2": DINOv2(),
+    "mocov3": MoCov3(),
 }
 
 

@@ -28,5 +28,5 @@ variant:
     config: dinov2.utils.config.setup
   params:
     config: ../dinov2/dinov2/configs/train/vitb14_short.yaml
-    pretrained_weights: "checkpoints/vitb14_dinov2_imagenet_swapopt_lwx10/eval/training_124999/teacher_checkpoint.pth"
+    pretrained_weights: ""
     dataset_path: ImageNet:split=TRAIN:root=/data/ynshah/imagenet/:extra=/data/ynshah/imagenet/extra

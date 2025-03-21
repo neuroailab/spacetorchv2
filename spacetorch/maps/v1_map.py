@@ -29,9 +29,12 @@ def interp(xs, ys, new_xs):
 def tc_fits_from_cache(output_dir: Path):
     tc_cache_dir = output_dir / "cache"
     if tc_cache_dir.exists():
-        fits = generic_utils.load_pickle(tc_cache_dir / "tuning_curve_fits.pkl")
-        responses = generic_utils.load_pickle(tc_cache_dir / "tuning_curve_responses.pkl")
-        return fits, responses
+        try:
+            fits = generic_utils.load_pickle(tc_cache_dir / "tuning_curve_fits.pkl")
+            responses = generic_utils.load_pickle(tc_cache_dir / "tuning_curve_responses.pkl")
+            return fits, responses
+        except:
+            return None
     return None
 
 

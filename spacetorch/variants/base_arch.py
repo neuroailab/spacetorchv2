@@ -31,10 +31,6 @@ class BaseArch(ABC):
         pass
 
     @abstractmethod
-    def set_training_protocol(self, args):
-        pass
-
-    @abstractmethod
     def start_training_protocol(self):
         pass
 
@@ -49,7 +45,6 @@ class BaseArch(ABC):
     def train_init(self, args):
         self.set_cfg(args)
         self.set_model(args)
-        self.set_training_protocol(args)
         
     def eval_init(self, args):
         self.set_eval_cfg(args)

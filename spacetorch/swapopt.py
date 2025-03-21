@@ -261,7 +261,7 @@ class Swapper:
 
         if config.wandb:
             wandb.init(
-                project="dinov2_imagenet",
+                project=c,
                 name=config.name + "_swapopt_" + str(layer),
             )
 

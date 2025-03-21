@@ -89,18 +89,16 @@ def main():
     for t in tqdm(range(0, 100, 5)):
         axs[t // 5].add_patch(patches.Rectangle((0, 0), height=70, width=70, facecolor="#ddd"))
 
-        floc_tissue.make_selectivity_map(
-            axs[t // 5],
-            marker=".",
-            contrasts=contrasts,
-            scale_points=False,
-            foreground_alpha=0.8,
-            t=t,
-            rasterized=True,
-            edgecolor=(0, 0, 0, 0.4),
-            final_s=5,
-            linewidths=0,
-        )
+        floc_tissue.patches = []
+        for contrast in contrasts:
+            floc_tissue.find_patches(
+                contrast,
+                t=t,
+                output_dir=save_dir
+            )
+
+        for patch in floc_tissue.patches:
+            axs[t // 5].add_patch(patch.to_mpl_poly(alpha=0.8, lw=0.5))
 
         axs[t // 5].set_xlim([0, 70])
         axs[t // 5].set_ylim([0, 70])
@@ -108,12 +106,12 @@ def main():
 
         add_scale_bar(axs[t // 5], 10, y_start=0)
         
-    fig.savefig(save_dir / f"vtc_selectivity.png", dpi=300, bbox_inches="tight", transparent=True)
+    fig.savefig(save_dir / f"vtc_patches.png", dpi=300, bbox_inches="tight", transparent=True)
 
 
 if __name__ == "__main__":
     """
     Example usage:
-    python3 visualize/vtc_maps.py --config configs/analysis_configs/vitb14_dinov2_imagenet_unoptimized.yaml --layer blocks.10
+    python3 visualize/vtc_smoothed_maps.py --config configs/analysis_configs/vitb14_dinov2_imagenet_unoptimized.yaml --layer blocks.10
     """
     main()

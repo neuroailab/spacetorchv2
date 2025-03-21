@@ -172,26 +172,18 @@ class DINOv2(BaseArch):
         self.model = SpatialDINOv2(self.cfg, positions)
         print(self.model)
 
-        # set base model
-        if args.variant.params.pretrained_weights:
-            self._load_pretrained_weights(args, self.model.teacher)
-
         self.model.to(self.device)
 
         self.base_model = self.model.teacher.backbone
-        
-        self.model.prepare_for_distributed_training()
 
     def set_eval_model(self, args):
         eval_model = get_fn(args.variant.setup.eval_model)
         self.eval_model, _ = eval_model(self.eval_cfg)
 
-    def set_training_protocol(self, args):
+    def start_training_protocol(self, args):
+        self.model.prepare_for_distributed_training()
         train = get_fn(args.variant.setup.train)
-        self.training_procotol = train
-
-    def start_training_protocol(self):
-        self.training_procotol(self.cfg, self.model, resume=False)
+        train(self.cfg, self.model, resume=False)
 
     def set_eval_protocol(self, args):
         eval = get_fn(args.variant.setup.eval)

@@ -27,7 +27,7 @@ def main(args):
     variant = get_variant(cfg.variant.name)
     variant.train_init(cfg)
 
-    variant.start_training_protocol()
+    variant.start_training_protocol(cfg)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 name: vitb14am_dinov2_imagenet_swapopt_lw01
-wandb: True
+wandb: False
 spatial_loss:
   name: 2d_spatial_correlation
   spatial_weight:
@@ -25,7 +25,9 @@ variant:
   setup:
     train: dinov2.train.train.do_train
     model: dinov2.train.ssl_meta_arch.SSLMetaArch
+    eval_model: dinov2.eval.setup.setup_and_build_model
     config: dinov2.utils.config.setup
+    eval: dinov2.eval.linear.run_eval_linear
   params:
     config: ../dinov2/dinov2/configs/train/vitb14_short.yaml
     pretrained_weights: ""

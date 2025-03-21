@@ -169,7 +169,7 @@ class ITMap(TissueMap):
         selectivity_fn: Callable[
             [np.ndarray, np.ndarray], np.ndarray
         ] = array_utils.tstat,
-        selectivity_threshold: float = 10.0,
+        t: int = 95,
         contrasts: Optional[List[Contrast]] = None,
         grayout=False,
         background_alpha: float = 0.1,
@@ -205,7 +205,9 @@ class ITMap(TissueMap):
             sel = self.responses.selectivity(
                 contrast.on_categories, selectivity_fn=selectivity_fn
             )[self.unit_mask]
-            selective_indices = sel > selectivity_threshold
+
+            threshold = np.percentile(sel, t)
+            selective_indices = sel > threshold
 
             sizes = self.point_size_multiplier
             if scale_points:
