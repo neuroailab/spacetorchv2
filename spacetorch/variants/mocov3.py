@@ -38,7 +38,7 @@ from spacetorch.variants.assets.moco.main_lincls import main_worker as eval_main
 
 class MoCov3(BaseArch):
     """
-    Implements the DINOv2 self-supervised objective function.
+    Implements the MoCov3 self-supervised objective function.
     """
     def __init__(self):
         super().__init__()
@@ -282,7 +282,9 @@ class SpatialMoCov3(torch.nn.Module):
         return joint_loss
 
 
-# An almost verbatim copy of main_worker from MoCov3 repository for making easy changes
+"""
+Code modified from the MoCo v3 public repository
+"""
 def main_worker(gpu, ngpus_per_node, args, positions, layernames):
     args.gpu = gpu
 
