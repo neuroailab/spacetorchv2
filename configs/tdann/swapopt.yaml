@@ -1,0 +1,13 @@
+name: tdann_swapopt
+output_dir: checkpoints/tdann/positions/swappedon_SineGrating2019
+wandb: False
+spatial_loss:
+  name: 2d_spatial_correlation
+  spatial_weight: 0.
+  position_dir: checkpoints/tdann/positions/swappedon_SineGrating2019
+variant:
+  name: tdann
+  architecture: resnet18
+  params:
+    pretrained_weights: checkpoints/tdann/pretrained/model_final_checkpoint_phase199.torch
+    dataset_path: ImageNet:split=TRAIN:root=/data/ynshah/imagenet/:extra=/data/ynshah/imagenet/extra

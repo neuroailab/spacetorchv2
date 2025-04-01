@@ -1,10 +1,10 @@
-name: tdann
-output_dir: checkpoints/tdann
+name: tdann_optimized
+output_dir: checkpoints/tdann/
 wandb: False
 spatial_loss:
   name: 2d_spatial_correlation
   spatial_weight: 0.
-  position_dir: checkpoints/tdann/positions
+  position_dir: checkpoints/tdann/positions/swappedon_SineGrating2019
 variant:
   name: tdann
   architecture: resnet18

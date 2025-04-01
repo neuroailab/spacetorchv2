@@ -1,5 +1,5 @@
-name: vitb16_mocov3_imagenet
-output_dir: checkpoints/vitb16_mocov3_imagenet/positions
+name: vitb16_mocov3_imagenet_unoptimized
+output_dir: checkpoints/vitb16_mocov3_imagenet_unoptimized
 wandb: False
 spatial_loss:
   name: 2d_spatial_correlation
@@ -16,7 +16,7 @@ spatial_loss:
     blocks.9: 0.
     blocks.10: 0.
     blocks.11: 0.
-  position_dir: checkpoints/vitb16_mocov3_imagenet/positions/
+  position_dir: checkpoints/vitb16_mocov3_imagenet/positions/swappedon_SineGrating2019
 swapopt:
   num_steps: 100000000
   steps_per_neighborhood: 500
@@ -31,6 +31,6 @@ variant:
     eval: ../moco-v3/main_lincls.py
   params:
     config: ""
-    pretrained_weights: checkpoints/vitb16_mocov3_imagenet/eval/checkpoint_0299.pth.tar
+    pretrained_weights: ""
     resume_path: ""
     dataset_path: /data/ynshah/imagenet/
