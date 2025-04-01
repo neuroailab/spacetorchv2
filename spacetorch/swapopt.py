@@ -261,7 +261,7 @@ class Swapper:
 
         if config.wandb:
             wandb.init(
-                project=c,
+                project=config.name.split("_")[1],
                 name=config.name + "_swapopt_" + str(layer),
             )
 
