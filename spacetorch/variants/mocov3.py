@@ -83,10 +83,10 @@ class MoCov3(BaseArch):
     def set_eval_cfg(self, args):
         self.eval_cfg = argparse.Namespace(**{
             "spatial_args": args,
-            "save_dir": Path(args.output_dir),
+            "save_dir": Path(args.output_dir) / "eval",
             "data": args.variant.params.dataset_path,
             "arch": "vit_base",
-            "epochs": 90,
+            "epochs": 30,
             "workers": 32,
             "start_epoch": 0,
             "batch_size": 1024,
