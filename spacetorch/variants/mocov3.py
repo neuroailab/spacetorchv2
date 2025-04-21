@@ -60,7 +60,7 @@ class MoCov3(BaseArch):
             "momentum": 0.9,
             "weight_decay": .1,
             "print_freq": 10,
-            "resume": args.variant.params.resume_path,
+            "resume": "",
             "world_size": 1,
             "rank": 0,
             "local_rank": 0,
@@ -94,7 +94,7 @@ class MoCov3(BaseArch):
             "momentum": 0.9,
             "weight_decay": 0.,
             "print_freq": 10,
-            "resume": args.variant.params.resume_path,
+            "resume": "",
             "evaluate": False,
             "world_size": 1,
             "rank": 0,
@@ -115,6 +115,9 @@ class MoCov3(BaseArch):
             if k.startswith('module.model.base_encoder') and not k.startswith('module.model.base_encoder.%s' % "head"):
                 # remove prefix
                 state_dict[k[len("module.model.base_encoder."):]] = state_dict[k]
+            if k.startswith('module.base_encoder') and not k.startswith('module.base_encoder.%s' % "head"):
+                # remove prefix
+                state_dict[k[len("module.base_encoder."):]] = state_dict[k]
             # delete renamed or unused k
             del state_dict[k]
         msg = model.load_state_dict(state_dict, strict=False)

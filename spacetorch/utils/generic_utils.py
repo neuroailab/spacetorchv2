@@ -1,11 +1,14 @@
 import random
 import os
-from pathlib import Path
+import yaml
 import pickle
-from typing import List, Tuple, Union, Any
-
 import numpy as np
 import torch
+from pathlib import Path
+from typing import List, Tuple, Union, Any
+
+from vissl.utils.hydra_config import AttrDict
+
 
 Iterable = Union[List, Tuple, np.ndarray]
 
@@ -91,3 +94,18 @@ def write_pickle(path, data):
     path.parent.mkdir(exist_ok=True, parents=True)
     with path.open("wb") as stream:
         return pickle.dump(data, stream)
+
+
+def load_config_from_yaml(path: Union[str, Path]) -> AttrDict:
+    """
+    Load a yaml config as an AttrDict
+    """
+    # force path to a Path object
+    path = Path(path)
+
+    with path.open("r") as stream:
+        raw_dict = yaml.safe_load(stream)
+
+    config = AttrDict(raw_dict)
+
+    return config

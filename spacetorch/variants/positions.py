@@ -61,7 +61,7 @@ BRAIN_MAPPING = {
         "blocks.10": "VTC",
         "blocks.11": "VTC",
     },
-    "vitb14am": {
+    "vitb14a": {
         "blocks.0.attn": "retina",
         "blocks.1.attn": "V1",
         "blocks.2.attn": "V1",

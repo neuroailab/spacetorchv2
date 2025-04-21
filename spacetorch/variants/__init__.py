@@ -2,6 +2,8 @@ from .base_arch import BaseArch
 from .tdann import TDANN
 from .dinov2 import DINOv2
 from .mocov3 import MoCov3
+from .supervised import Supervised
+from .simclr import SimCLR
 
 
 OUTPUT_DIMS_FOR_224_INPUTS = {
@@ -29,7 +31,7 @@ OUTPUT_DIMS_FOR_224_INPUTS = {
         "blocks.10": (768, 16, 16),
         "blocks.11": (768, 16, 16),
     },
-    "vitb14am": {
+    "vitb14a": {
         "blocks.0.attn": (768, 16, 16),
         "blocks.1.attn": (768, 16, 16),
         "blocks.2.attn": (768, 16, 16),
@@ -78,6 +80,8 @@ VARIANT_MAPPING = {
     "tdann": TDANN(),
     "dinov2": DINOv2(),
     "mocov3": MoCov3(),
+    "supervised": Supervised(),
+    "simclr": SimCLR(),
 }
 
 
