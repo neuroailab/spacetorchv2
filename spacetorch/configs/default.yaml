@@ -21,3 +21,4 @@ variant:
     config: ""
     pretrained_weights: ""
     dataset_path: ""
+    resume_path: ""

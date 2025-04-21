@@ -1,5 +1,5 @@
 name: vitb14_dinov2_imagenet_swapopt_lwx10
-output_dir: checkpoints/vitb14_dinov2_imagenet_swapopt_lwx10/eval/training_124999/teacher_checkpoint.pth
+output_dir: checkpoints/vitb14_dinov2_imagenet_swapopt_lwx10
 wandb: True
 spatial_loss:
   name: 2d_spatial_correlation
