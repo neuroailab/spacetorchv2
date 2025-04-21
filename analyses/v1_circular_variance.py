@@ -16,7 +16,6 @@ def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str)
     parser.add_argument("--layer", type=str)
-    parser.add_argument("--e", type=int)
     parser.add_argument(
         "opts",
         help="""
@@ -60,12 +59,33 @@ def get_macaque_data():
 
     data = {
         "layer": "NA",
+        "selectivity_threshold": SEL_THRESH,
         "cv": circular_variance,
         "per_units": per_units,
         "per_selective": per_selective,
     }
 
     return data
+
+
+def ringach_norm(otc):    
+    n_angles = 8
+
+    # the angles we use evenly span 0 to pi, but do not wrap
+    angles = np.linspace(0, np.pi, n_angles + 1)[:-1]
+
+    # compute "R"
+    numerator = np.sum(
+        otc * np.exp(angles * 2 * 1j), axis=1
+    )
+
+    denominator = np.sum(otc, axis=1)
+    R = numerator / denominator
+
+    # compute circular variance
+    CV = 1 - np.abs(R)
+
+    return CV
 
 
 def get_circular_variance(tissue: TissueMap, layer: str):
@@ -75,21 +95,28 @@ def get_circular_variance(tissue: TissueMap, layer: str):
     circular_variance, per_units = [], []
     per_selective = 0.
 
-    x = tissue.responses.orientation_tuning_curves
+    x = np.array(tissue.responses.orientation_tuning_curves)
 
-    cv = tissue.responses.circular_variance
-    mean_responses = tissue.responses._data.mean("image_idx").values
-    cv = cv[~np.isnan(cv) & (mean_responses > RESP_THRESH)]
+    # shift tuning curves to have min=0 to counter the effect
+    # of layer normalization in vision transformers
+    if not "layer" in layer:
+        x = x + np.abs(np.min(x, axis=1, keepdims=True))
+
+    cv = ringach_norm(x)
+
+    np.save("data.npy", cv)
 
     counts = cv_bin(cv, bin_edges)
     for x, y in zip(midpoints, counts):
         circular_variance.append(x)
         per_units.append(y)
 
+    SEL_THRESH = np.nanmean(cv)
     per_selective = np.mean(cv < SEL_THRESH) * 100
     
     data = {
         "layer": layer,
+        "selectivity_threshold": SEL_THRESH,
         "cv": circular_variance,
         "per_units": per_units,
         "per_selective": per_selective,
@@ -105,7 +132,8 @@ def main():
     variant.set_eval_model(cfg)
 
     model = variant.eval_model
-    positions = get_positions(cfg, rescale=False)[args.layer]
+    is_tdann = "tdann" in cfg.name
+    positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
 
     save_dir = Path(cfg.output_dir) / args.layer
@@ -117,7 +145,9 @@ def main():
         positions,
         layer=args.layer,
         output_dir=save_dir,
-        # skip_cache=True,
+        normalize_to_ringach_firing_rates=is_tdann,
+        smooth_orientation_tuning_curves=False,
+        skip_cache=True,
     )
 
     data = get_circular_variance(v1_tissue, args.layer)

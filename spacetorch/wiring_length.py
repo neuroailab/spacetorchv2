@@ -4,7 +4,6 @@ import math
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-from numpy.random import default_rng
 import torch
 import torch.nn as nn
 from scipy.stats import scoreatpercentile
@@ -12,10 +11,8 @@ from scipy.spatial.distance import cdist
 from scipy.optimize import linear_sum_assignment
 from sklearn.cluster import KMeans
 
-from spacetorch.constants import RNG_SEED
 from spacetorch.datasets import DatasetRegistry
 from spacetorch.variants.positions import LayerPositions
-from spacetorch.types import RN18Layer
 from spacetorch.feature_extractor import get_features_from_layer
 from spacetorch.utils import array_utils, spatial_utils
 
@@ -70,10 +67,8 @@ class WLTissue:
     shuffle: bool = False
 
     def __post_init__(self):
-        rng = default_rng(seed=RNG_SEED)
-
         if self.shuffle:
-            rng.shuffle(self.positions)
+            np.random.shuffle(self.positions)
 
         # figure out which target units are "on"
         passing_threshold = scoreatpercentile(self.responses, self.active_pctile)
@@ -117,8 +112,8 @@ class WireLengthExperiment:
         self,
         model: nn.Module,
         layer_positions: Dict[str, LayerPositions],
-        source_layer: RN18Layer,
-        target_layer: RN18Layer,
+        source_layer: str,
+        target_layer: str,
         num_patterns: int,
     ):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -137,9 +132,7 @@ class WireLengthExperiment:
     def _generate_patterns(self, num_patterns):
         batch_size = min(64, num_patterns)
         num_batches = math.ceil(num_patterns / batch_size)
-        layers = [
-            f"base_model.{layer}" for layer in [self.source_layer, self.target_layer]
-        ]
+        layers = [self.source_layer, self.target_layer]
 
         features, inputs, _labels = get_features_from_layer(
             self.model,
@@ -151,7 +144,7 @@ class WireLengthExperiment:
             verbose=False,
         )
         self.features = {
-            layer.split("base_model.")[-1]: layer_features[:num_patterns]
+            layer: layer_features[:num_patterns]
             for layer, layer_features in features.items()
         }
         inputs = inputs[:num_patterns]

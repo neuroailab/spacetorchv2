@@ -30,7 +30,7 @@ class ITMap(TissueMap):
     def find_patches(
         self,
         contrast: Contrast,
-        t: int = 95,
+        t: int = 2,
         minimum_size: float = 100,
         maximum_size: float = 4500,
         min_count: int = 10,
@@ -69,8 +69,7 @@ class ITMap(TissueMap):
             sel = self.responses.selectivity(
                 selectivity_fn=selectivity_fn, on_categories=contrast.on_categories
             )
-
-            threshold = np.percentile(sel, t)
+            print("selectivity:", (sel.min(), sel.max()))
 
             # create smoothing anchors
             n_anchors = 100
@@ -91,7 +90,7 @@ class ITMap(TissueMap):
                     weighted = np.average(sel, weights=dist_from_center)
                     smoothed[-row, col] = weighted
 
-            smoothed[smoothed < threshold] = 0
+            smoothed[smoothed < t] = 0
             labels = skimage.measure.label(smoothed > 0)
             clusters: List[np.ndarray] = labels_to_unit_indices(
                 labels, self.positions, np.ptp(self.positions, axis=0)
@@ -143,6 +142,7 @@ class ITMap(TissueMap):
         )
 
         sel = self.responses.selectivity(contrast.on_categories)
+        print(sel.min(), sel.max())
         sort_ind = np.argsort(np.abs(sel))
 
         handle = axis.scatter(

@@ -56,7 +56,8 @@ def main():
     variant.set_eval_model(cfg)
 
     model = variant.eval_model
-    positions = get_positions(cfg, rescale=False)[args.layer]
+    is_tdann = "tdann" in cfg.name
+    positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
@@ -67,6 +68,7 @@ def main():
         positions,
         layer=args.layer,
         output_dir=save_dir,
+        smooth_orientation_tuning_curves=False,
         # skip_cache=True,
     )
 

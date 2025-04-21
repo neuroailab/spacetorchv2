@@ -21,6 +21,7 @@ def get_sine_responses(
     model,
     layers,
     verbose: bool = True,
+    normalize_to_ringach_firing_rates: bool = True,
 ) -> sine_gratings.SineResponses:
     dataset = DatasetRegistry.get("SineGrating2019")
     sine_features, _, sine_labels = get_features_from_layer(
@@ -31,7 +32,7 @@ def get_sine_responses(
         return_inputs_and_labels=True,
     )
 
-    return sine_gratings.SineResponses(sine_features, sine_labels)
+    return sine_gratings.SineResponses(sine_features, sine_labels, normalize_to_ringach_firing_rates=normalize_to_ringach_firing_rates)
 
 
 def get_smoothed_map(
@@ -68,6 +69,8 @@ def get_sine_tissue(
     layer: str = "blocks.1",
     skip_cache=False,
     output_dir: str = "checkpoints/",
+    normalize_to_ringach_firing_rates: bool = True,
+    smooth_orientation_tuning_curves: bool = True,
 ):
     # check for cached responses
     cache_id = name
@@ -81,13 +84,15 @@ def get_sine_tissue(
             model,
             layers=[layer],
             verbose=True,
+            normalize_to_ringach_firing_rates=normalize_to_ringach_firing_rates
         )
 
     return V1Map(
         positions.coordinates,
         responses,
         output_dir=output_dir,
-        skip_cache=skip_cache
+        skip_cache=skip_cache,
+        smooth_orientation_tuning_curves=smooth_orientation_tuning_curves
     )
 
 

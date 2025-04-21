@@ -58,6 +58,12 @@ def main():
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
+    save_path: Path = save_dir.parent / f"receptive_field_sizes_checkpoints_{args.dataset_name}.csv"
+
+    if not save_path.exists():
+        with open(save_path, "w") as f:
+            f.write("run,block,layer,checkpoint,rf_size")
+
     dataset = DatasetRegistry.get(args.dataset_name)
     data_loader: DataLoader = DataLoader(
         dataset, batch_size=128, shuffle=True, num_workers=1, pin_memory=True
@@ -78,32 +84,32 @@ def main():
     layer_name = args.layer
     layer = resolve_sequential_module_from_str(model, layer_name)
 
-    # for i in range(100):
-    handle = layer.register_forward_hook(get_hook(layer_name))
+    for run in range(5):
+        handle = layer.register_forward_hook(get_hook(layer_name))
 
-    analysis_output = analysis_single_layer(
-        model=model,
-        layer_name=layer_name,
-        data_loader=data_loader,
-        hook_dict=hook_dict, 
-        max_image_num=1000,
-        device="cuda"
-    )
+        analysis_output = analysis_single_layer(
+            model=model,
+            layer_name=layer_name,
+            data_loader=data_loader,
+            hook_dict=hook_dict, 
+            max_image_num=1000,
+            device="cuda"
+        )
 
-    handle.remove()
+        handle.remove()
 
-    average_image_dict_average, hook_dict = analysis_output
+        average_image_dict_average, hook_dict = analysis_output
 
-    rfs = create_plots(
-        average_image_dict=average_image_dict_average,
-        hook_dict=hook_dict,
-        path=save_dir,
-        extra=extra + f"_{args.dataset_name}"  # + f"_{i}"
-    )
+        rfs = create_plots(
+            average_image_dict=average_image_dict_average,
+            hook_dict=hook_dict,
+            path=save_dir,
+            extra=extra + f"_{args.dataset_name}"
+        )
 
-    with open(save_dir.parent / f"receptive_field_sizes_checkpoints_{args.dataset_name}.csv", "a") as f:
-        extracted = extract_parts(layer_name)
-        f.write(f"{extracted[0]},{extracted[1]},{extra},{rfs[0]}\n")
+        with open(save_path, "a") as f:
+            extracted = extract_parts(layer_name)
+            f.write(f"{run},{extracted[0]},{extracted[1]},{extra},{rfs[0]}\n")
 
 
 if __name__ == "__main__":

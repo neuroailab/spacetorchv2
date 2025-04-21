@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from spacetorch.visualize.common import ALL_MODELS
+from analyses.common import ALL_MODELS
 
 
 def get_parser() -> argparse.ArgumentParser:

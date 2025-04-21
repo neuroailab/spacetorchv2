@@ -106,7 +106,8 @@ def main():
     variant.set_eval_model(cfg)
 
     model = variant.eval_model
-    positions = get_positions(cfg, rescale=False)[args.layer]
+    is_tdann = "tdann" in cfg.name
+    positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
@@ -117,6 +118,7 @@ def main():
         positions,
         layer=args.layer,
         output_dir=save_dir,
+        smooth_orientation_tuning_curves=False,
         # skip_cache=True
     )
 
@@ -136,7 +138,7 @@ def main():
         axs[1].text(rect.get_x() + rect.get_width() / 2.0, height, f'{height:.3f}', ha='center', va='bottom', fontsize=7)
     axs[1].set_ylabel("Cardinality Index")
     axs[1].set_yticks([0, 0.5, 1.0])
-    plt.savefig(save_dir / f"preferred_orientations_{args.layer}.png", bbox_inches="tight", dpi=300)
+    plt.savefig(save_dir / f"preferred_orientations.png", bbox_inches="tight", dpi=300)
     
 
 if __name__ == "__main__":

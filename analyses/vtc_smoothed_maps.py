@@ -3,11 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 from matplotlib import patches
+from tqdm import tqdm
 
 from spacetorch.configs import get_cfg
 from spacetorch.variants import get_variant
 from spacetorch.variants.positions import get_positions
-from spacetorch.maps.sine_tissue import get_sine_tissue, METRIC_DICT, get_smoothed_map
+from spacetorch.datasets.floc import DOMAIN_CONTRASTS
+from spacetorch.maps.floc_tissue import get_floc_tissue
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -28,6 +30,7 @@ For python-based LazyConfig, use "path.key=value".
 
 
 args = get_parser().parse_args()
+contrasts = DOMAIN_CONTRASTS
 
 
 def add_scale_bar(
@@ -68,47 +71,49 @@ def main():
     variant.set_eval_model(cfg)
 
     model = variant.eval_model
-    positions = get_positions(cfg, rescale=False)[args.layer]
+    is_tdann = "tdann" in cfg.name
+    positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    v1_tissue = get_sine_tissue(
+    floc_tissue = get_floc_tissue(
         cfg.name,
         model,
         positions,
         layer=args.layer,
         output_dir=save_dir,
-        # skip_cache=True,
     )
 
-    lims = [5, 95]
-    v1_tissue.set_mask_by_pct_limits([lims, lims])
+    for t in range(2, 7):
+        fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(1, 1))
 
-    for name, metric in METRIC_DICT.items():
-        smoothed = get_smoothed_map(
-            v1_tissue, metric, final_width=1.5, final_stride=0.15, verbose=True
-        )
+        ax.add_patch(patches.Rectangle((0, 0), height=70, width=70, facecolor="#ddd"))
 
-        _, ax = plt.subplots(1, 1, figsize=(1, 1))
+        floc_tissue.patches = []
+        for contrast in contrasts:
+            floc_tissue.find_patches(
+                contrast,
+                t=t,
+                output_dir=save_dir,
+                # skip_cache=True
+            )
 
-        ax.imshow(
-            smoothed, cmap=metric.colormap, interpolation="nearest"
-        )
+        for patch in floc_tissue.patches:
+            ax.add_patch(patch.to_mpl_poly(alpha=0.8, lw=0.5))
 
+        ax.set_xlim([0, 70])
+        ax.set_ylim([0, 70])
         ax.axis("off")
 
-        total_px = smoothed.shape[0]
-        total_mm = np.ptp(v1_tissue._positions) * 0.9
-        px_per_mm = total_px / total_mm
-        add_scale_bar(ax, 10 * px_per_mm, flipud=True)
-        
-        plt.savefig(save_dir / f"smoothed_map_{name}.png", dpi=300, bbox_inches="tight", transparent=True)
+        add_scale_bar(ax, 10, y_start=0)
+            
+        fig.savefig(save_dir / f"vtc_map_smoothed_t{t}.png", dpi=300, bbox_inches="tight", transparent=True)
 
 
 if __name__ == "__main__":
     """
     Example usage:
-    python3 visualize/v1_smoothed_opm.py --config configs/analysis_configs/vitb14_dinov2_imagenet_unoptimized.yaml --layer blocks.2
+    python3 visualize/vtc_smoothed_maps.py --config configs/analysis_configs/vitb14_dinov2_imagenet_unoptimized.yaml --layer blocks.10
     """
     main()

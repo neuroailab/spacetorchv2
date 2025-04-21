@@ -233,7 +233,6 @@ class V1Map(TissueMap):
             self.positions[:, 1],
             s=final_s or point_sizes,
             c=colors,
-            cmap=metric.colormap,
             **kwargs,
         )
         remove_spines(axis)
