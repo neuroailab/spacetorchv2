@@ -56,6 +56,7 @@ class FeatureExtractor:
         model: nn.Module,
         model_layer_strings: Union[str, List[str]],
         return_inputs_and_labels: bool = False,
+        reshape: bool = True,
     ):
 
         if not isinstance(model_layer_strings, list):
@@ -70,7 +71,12 @@ class FeatureExtractor:
 
         # add forward hooks to each model layer
         for layer_name in model_layer_strings:
-            layer = resolve_sequential_module_from_str(model, layer_name)
+            hook_layer_name = layer_name
+            if "attn_matrix" in layer_name:
+                hook_layer_name = hook_layer_name[:-12]
+            if "attn_output" in layer_name:
+                hook_layer_name = hook_layer_name[:-12]
+            layer = resolve_sequential_module_from_str(model, hook_layer_name)
             hook = self.get_hook(layer, layer_name, target_dict=layer_results)
             hooks.append(hook)
 
@@ -110,23 +116,28 @@ class FeatureExtractor:
         self.layer_feats = {}
         for k, v in layer_results.items():
             self.layer_feats[k] = np.concatenate(v)
-
-            # to use queries, keys, or values from ViT blocks
-            # self.layer_feats[k] = np.concatenate(v).reshape(640, 257, 3, 768).transpose(2, 0, 1, 3)[2]
             
-            if len(self.layer_feats[k].shape) == 3:
-                # a hack to refer to outputs from vision transformers,
-                # removing the CLS token
-                self.layer_feats[k] = self.layer_feats[k][:, 1:]
+            if reshape:
+                # to use queries, keys, or values from ViT blocks
+                # self.layer_feats[k] = np.concatenate(v).reshape(640, 257, 3, 768).transpose(2, 0, 1, 3)[2]
+                
+                if len(self.layer_feats[k].shape) == 3:
+                    # a hack to refer to outputs from vision transformers,
+                    # removing the CLS token
+                    N, L, H = self.layer_feats[k].shape
 
-                # reshape features to look like conv outputs
-                # i.e., move num_feats to the second dim
-                # and break down sequence of patches into a grid
-                # of patches representing the visual scene in
-                # a raster-scan (row-major) format.
-                N, L, H = self.layer_feats[k].shape
-                sL = int(math.sqrt(L))
-                self.layer_feats[k] = self.layer_feats[k].reshape(N, sL, sL, H).transpose(0, 3, 1, 2)
+                    # Check if L is a perfect square
+                    sL = int(math.sqrt(L))
+                    is_square = sL * sL == L
+
+                    # Remove CLS token only if L is not already a square
+                    if not is_square:
+                        self.layer_feats[k] = self.layer_feats[k][:, 1:]
+                        L = self.layer_feats[k].shape[1]
+                        sL = int(math.sqrt(L))
+
+                    # Reshape to (N, C, H, W) format for compatibility with conv-style processing
+                    self.layer_feats[k] = self.layer_feats[k].reshape(N, sL, sL, H).transpose(0, 3, 1, 2)
 
         # corner case: for a single layer, just return features
         if len(self.layer_feats) == 1:
@@ -139,12 +150,18 @@ class FeatureExtractor:
 
     def get_hook(self, layer, layer_name, target_dict):
         def hook_function(_layer, _input, output, name=layer_name):
+            if "attn_output" in name:
+                output = _layer.attn_output
+            if "attn_matrix" in name:
+                output = _layer.attn_matrix
+
             if self.spatial_mp:
                 output = torch.amax(output, dim=(2, 3))
             out = output.cpu().numpy()
 
             if self.vectorize:
                 out = np.reshape(out, (len(out), -1))
+
             target_dict[name].append(out)
 
         hook = layer.register_forward_hook(hook_function)
@@ -161,6 +178,7 @@ def get_features_from_layer(
     shuffle: bool = True,
     verbose: bool = True,
     spatial_mp: bool = False,
+    reshape: bool = True,
 ) -> ReturnedFeatures:
     """Workhorse feature extractor.
 
@@ -194,5 +212,5 @@ def get_features_from_layer(
         dataloader, n_batches, verbose=verbose, spatial_mp=spatial_mp
     )
     return extractor.extract_features(
-        model, model_layer_strings, return_inputs_and_labels=return_inputs_and_labels
+        model, model_layer_strings, return_inputs_and_labels=return_inputs_and_labels, reshape=reshape
     )

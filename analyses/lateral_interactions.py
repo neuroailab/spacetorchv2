@@ -1,6 +1,8 @@
+import math
 import argparse
 import torch
 import numpy as np
+from tqdm import tqdm
 from pathlib import Path
 
 from spacetorch.datasets import DatasetRegistry
@@ -8,13 +10,12 @@ from spacetorch.configs import get_cfg
 from spacetorch.variants import get_variant
 from spacetorch.feature_extractor import get_features_from_layer
 from spacetorch.variants.positions import get_positions
+from spacetorch.variants import OUTPUT_DIMS_FOR_224_INPUTS
 
 
 def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str)
-    parser.add_argument("--dataset_name", type=str)
-    parser.add_argument("--layer", type=str)
     parser.add_argument(
         "opts",
         help="""
@@ -30,6 +31,16 @@ For python-based LazyConfig, use "path.key=value".
 
 args = get_parser().parse_args()
 
+mapping = {
+    "dinov2": "vitb14",
+    "mocov3": "vitb16",
+    "simclr": "vitb16",
+    "supervised": "vitb16",
+    "mae": "vitb16",
+    "swinv2_simmim": "swinv2_base",
+    "swin_moby": "swin_tiny",
+}
+
 
 def main():
     cfg = get_cfg(args)
@@ -37,42 +48,52 @@ def main():
     variant.set_eval_cfg(cfg)
     variant.set_eval_model(cfg)
     model = variant.eval_model
-    positions = get_positions(cfg, rescale=False)[args.layer]
+    positions = get_positions(cfg, rescale=False)
 
-    save_dir = Path(cfg.output_dir) / args.layer
-    save_dir.mkdir(parents=True, exist_ok=True)
+    is_swinv2 = ("swinv2" in cfg.name)
 
-    dataset = DatasetRegistry.get(args.dataset_name or "ImageNet")
-    
+    dataset = DatasetRegistry.get("ImageNet" if not is_swinv2 else "ImageNet192x192")
+
     out = get_features_from_layer(
         model=model,
         dataset=dataset,
         verbose=True,
-        max_batches=79,
+        shuffle=False,
+        max_batches=8,
         batch_size=128,
-        model_layer_strings=[args.layer]
+        model_layer_strings=[x + ".attn.attn_matrix" for x in OUTPUT_DIMS_FOR_224_INPUTS[mapping[cfg.variant.name]]],
+        reshape=False,
     )
 
-    qkv = torch.tensor(out).reshape(-1, 196, 3, 12, 64).permute(2, 0, 3, 1, 4)
-    q, k, v = qkv.unbind(0)
-    layer_idx = int(args.layer.split(".")[-1])
-    q, k = model.blocks[layer_idx].attn.q_norm(q), model.blocks[layer_idx].attn.k_norm(k)
-    q = q * model.blocks[layer_idx].attn.scale
-    attn = q @ k.transpose(-2, -1)
-    attn = attn.softmax(dim=-1)
+    is_attn = (cfg.variant.architecture[-1] == "a")
+    is_swin = ("swin" in cfg.name)
     
-    B, H, Q, K = attn.shape
-    
-    weighted_dists = torch.zeros(B, H, Q, device=attn.device)
-    for b in range(B):
-        coords = torch.tensor(positions.coordinates).reshape(768, 196, 2).mean(0)
-        distances = torch.cdist(coords, coords)
-        for h in range(H):
-            attn = attn[b, h]
-            avg_dist = (attn * distances).sum(dim=-1)
-            weighted_dists[b, h] = avg_dist
+    for l in tqdm(out.keys()):
+        layer = (l[:-17] if not is_attn else l[:-12]) + ("_output" if is_swin else "")
+        save_dir = Path(cfg.output_dir) / layer
+        save_dir.mkdir(parents=True, exist_ok=True)
 
-    np.save(save_dir / "attn_weighted_distances.npy", weighted_dists.cpu().numpy())
+        attn = torch.tensor(out[l])
+
+        B, H, Q, K = attn.shape
+
+        sK = int(math.sqrt(K))
+        is_square = sK * sK == K
+
+        if not is_square:
+            attn = attn[:, :, 1:, 1:]
+            B, H, Q, K = attn.shape
+
+        # weighted_dists = torch.zeros(B, H, Q, device=attn.device)
+        # for b in range(B):
+        #     coords = torch.tensor(positions[layer].coordinates).reshape(-1, Q, 2).mean(0)
+        #     distances = torch.cdist(coords, coords)
+        #     for h in range(H):
+        #         _attn = attn[b, h]
+        #         avg_dist = (_attn * distances).sum(dim=-1)
+        #         weighted_dists[b, h] = avg_dist
+    
+        np.save(save_dir / "attn_matrix.npy", attn)
 
 
 if __name__ == "__main__":

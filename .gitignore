@@ -10,6 +10,7 @@ dist/
 build/
 __pycache__/
 spacetorch.egg-info/
+spacetorchv2.egg-info/
 
 # automation and debugging scripts
 *.ipynb

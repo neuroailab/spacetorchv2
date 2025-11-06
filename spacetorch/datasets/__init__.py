@@ -1,4 +1,4 @@
-from .imagenet import ImageNetData, IMAGENET_TRANSFORMS
+from .imagenet import ImageNetData, IMAGENET_TRANSFORMS, IMAGENET_TRANSFORMS_192X192
 from .sine_gratings import SineGrating2019
 from .floc import fLocData
 from .retinal_waves import RetinalWaveData, DEFAULT_RWAVE_DIRS
@@ -19,16 +19,36 @@ DEFAULT_TRANSFORMS = torchvision.transforms.Compose(
     ]
 )
 
+DEFAULT_TRANSFORMS_192x192 = torchvision.transforms.Compose(
+    [
+        torchvision.transforms.ToPILImage(),
+        torchvision.transforms.Resize(192),
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize(
+            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+        ),
+    ]
+)
+
 _DATASETS = {
     "SineGrating2019": (
         SineGrating2019,
         (paths.SINE_GRATING_2019_DIR, DEFAULT_TRANSFORMS),
     ),
+    "SineGrating2019_192x192": (
+        SineGrating2019,
+        (paths.SINE_GRATING_2019_DIR, DEFAULT_TRANSFORMS_192x192),
+    ),
     "fLoc": (fLocData, (paths.FLOC_DIR, DEFAULT_TRANSFORMS)),
+    "fLoc192x192": (fLocData, (paths.FLOC_DIR, DEFAULT_TRANSFORMS_192x192)),
     "NSD": (NSDImages, (paths.NSD_PATH, NSD_TRANSFORMS)),
     "ImageNet": (
         ImageNetData,
         (paths.DEFAULT_IMAGENET_VAL_DIR, IMAGENET_TRANSFORMS),
+    ),
+    "ImageNet192x192": (
+        ImageNetData,
+        (paths.DEFAULT_IMAGENET_VAL_DIR, IMAGENET_TRANSFORMS_192X192),
     ),
     "ImageNet_train": (
         ImageNetData,

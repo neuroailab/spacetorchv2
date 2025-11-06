@@ -120,7 +120,7 @@ class Subject:
         threshold: float = 4,
         minimum_size: float = 100,
         verbose: bool = False,
-        output_dir: str = "checkpoints/",
+        output_dir: Path = Path("checkpoints/"),
     ) -> None:
         """
         Arguments:
@@ -137,7 +137,7 @@ class Subject:
             f"_thr{threshold:.2f}"
             f"_min{minimum_size:.2f}"
         )
-        cache_loc = output_dir / f"human_patches_{cache_probe}.pkl"
+        cache_loc = output_dir / "human" / f"human_patches_{cache_probe}.pkl"
 
         if cache_loc.exists():
             patches = generic_utils.load_pickle(cache_loc)

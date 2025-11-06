@@ -42,7 +42,13 @@ def main():
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    dataset = DatasetRegistry.get(args.dataset_name or "ImageNet")
+    if (save_dir / "effective_dim.txt").exists():
+        print(f"Found existing results in {save_dir}, skipping...")
+        return
+
+    is_swinv2 = ("swinv2" in cfg.name)
+
+    dataset = DatasetRegistry.get(args.dataset_name or ("ImageNet" if not is_swinv2 else "ImageNet192x192"))
     
     features = get_features_from_layer(
         model=model,

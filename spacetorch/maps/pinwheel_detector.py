@@ -34,15 +34,15 @@ def increments(angles) -> List[float]:
 
 
 class PinwheelDetector:
-    def __init__(self, tissue: V1Map, size_mult: float = 1.5, verbose=False):
+    def __init__(self, tissue: V1Map, width: float = 1.5, stride: float = 0.15, verbose=False):
         self.tissue = tissue
 
         # compute the smoothed orientation map
         self.smoothed = get_smoothed_map(
             tissue,
             angle_metric,
-            final_width=1 * size_mult,
-            final_stride=0.3 * size_mult,
+            final_width=width,
+            final_stride=stride,
             verbose=verbose,
         )
 
@@ -51,8 +51,8 @@ class PinwheelDetector:
         self.var = get_smoothed_map(
             tissue,
             angle_metric,
-            final_width=1 * size_mult,
-            final_stride=0.3 * size_mult,
+            final_width=width,
+            final_stride=stride,
             verbose=verbose,
             agg="circstd",
         )

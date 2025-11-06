@@ -1,5 +1,5 @@
 name: tdann_optimized
-output_dir: checkpoints/tdann/
+output_dir: checkpoints/tdann/seed_3/
 wandb: False
 spatial_loss:
   name: 2d_spatial_correlation
@@ -9,5 +9,5 @@ variant:
   name: tdann
   architecture: resnet18
   params:
-    pretrained_weights: checkpoints/tdann/spatial/model_final_checkpoint_phase199.torch
+    pretrained_weights: checkpoints/tdann/spatial/model_final_checkpoint_phase199_seed3.torch
     dataset_path: ImageNet:split=TRAIN:root=/data/ynshah/imagenet/:extra=/data/ynshah/imagenet/extra

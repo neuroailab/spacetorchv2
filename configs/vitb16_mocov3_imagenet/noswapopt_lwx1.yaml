@@ -31,6 +31,6 @@ variant:
     eval: ../moco-v3/main_lincls.py
   params:
     config: ""
-    pretrained_weights: checkpoints/vitb16_mocov3_imagenet_noswapopt_lwx1/eval/checkpoint_0299.pth.tar
+    pretrained_weights: checkpoints/vitb16_mocov3_imagenet_noswapopt_lwx1/vitb16_mocov3_imagenet_noswapopt_lwx1.pth.tar
     resume_path: ""
     dataset_path: /data2/ynshah/imagenet/

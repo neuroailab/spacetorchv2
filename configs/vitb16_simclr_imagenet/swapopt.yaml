@@ -25,6 +25,6 @@ variant:
   architecture: vitb16
   params:
     config: simclr_config.yaml
-    pretrained_weights: checkpoints/vitb16_simclr_imagenet/model_final_checkpoint_phase299.torch
+    pretrained_weights: checkpoints/vitb16_simclr_imagenet/vitb16_simclr_imagenet.torch
     resume_path: ""
     dataset_path: /data/ynshah/imagenet

@@ -74,8 +74,14 @@ def main():
     is_tdann = "tdann" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
+    is_swinv2 = ("swinv2" in cfg.name)
+
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
+
+    if (save_dir / "vtc_map_contrasts.png").exists():
+        print(f"Found existing results in {save_dir}, skipping...")
+        return
 
     floc_tissue = get_floc_tissue(
         cfg.name,
@@ -83,7 +89,21 @@ def main():
         positions,
         layer=args.layer,
         output_dir=save_dir,
+        is_swinv2=is_swinv2
     )
+
+    fig, axs = plt.subplots(1, 5, figsize=(10, 2))
+
+    for ax, contrast in zip(axs, DOMAIN_CONTRASTS):
+        z = floc_tissue.responses.selectivity(on_categories=contrast.on_categories)
+
+        ax.scatter(x=positions.coordinates[:, 0], y=positions.coordinates[:, 1], s=(np.abs(z) / np.max(z)), c=z, cmap='seismic')
+
+        ax.set_title(contrast.name)
+        
+        ax.axis("off")
+
+    fig.savefig(save_dir / f"vtc_map_contrasts.png", dpi=300, bbox_inches="tight")
 
     fig, axs = plt.subplots(ncols=20, nrows=1, figsize=(20, 1))
 

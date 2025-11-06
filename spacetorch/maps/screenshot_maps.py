@@ -93,8 +93,8 @@ class NauhausOrientationTissue(SimpleTissue):
     @property
     def metadata(self):
         return {
-            "path": Path("spacetorch")
-            / "visualize/assets/preference/maps.jpg",
+            "path": Path("spacetorch").parent
+            / "analyses/assets/preference/maps.jpg",
             "map_box": [52, 118, 420, 370],
             "scale_bar_box": [563, 950, 810, 1000],
             "scale_bar_len_mm": 0.5,
@@ -150,8 +150,8 @@ class NauhausSFTissue(SimpleTissue):
     @property
     def metadata(self):
         return {
-            "path": Path("spacetorch")
-            / "visualize/assets/preference/maps.jpg",
+            "path": Path("spacetorch").parent
+            / "analyses/assets/preference/maps.jpg",
             "map_box": [52, 613, 420, 865],
             "scale_bar_box": [563, 950, 810, 1000],
             "scale_bar_len_mm": 0.5,
@@ -220,7 +220,7 @@ class LivingstoneColorTissue(SimpleTissue):
     @property
     def metadata(self):
         return {
-            "path": Path("spacetorch") / "visualize/assets/screenshots/livingstone1984_fig27b.png",
+            "path": Path("spacetorch").parent / "analyses/assets/screenshots/livingstone1984_fig27b.png",
             "map_box": [500, 700, 700, 900],
             "scale_bar_box": [870, 1200, 928, 1300],
             "scale_bar_len_mm": 1.0,

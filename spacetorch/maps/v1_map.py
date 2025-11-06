@@ -133,7 +133,7 @@ class V1Map(TissueMap):
         preferences = self.get_preferences(metric)
 
         if metric == angle_metric:
-            return [angle_metric.colormap(pref / 180) for pref in preferences]
+            return [metric.colormap(pref / 180) for pref in preferences]
 
         color_options = np.array(
             [

@@ -15,8 +15,12 @@ def get_floc_responses(
     model,
     layers,
     verbose: bool = True,
+    is_swinv2: bool = False,
 ) -> floc.fLocResponses:
-    dataset = DatasetRegistry.get("fLoc")
+    if is_swinv2:
+        dataset = DatasetRegistry.get("fLoc192x192")
+    else:
+        dataset = DatasetRegistry.get("fLoc")
     floc_features, _, floc_labels = get_features_from_layer(
         model,
         dataset,
@@ -35,6 +39,7 @@ def get_floc_tissue(
     layer: str = "blocks.11",
     skip_cache = False,
     output_dir: str = "checkpoints/",
+    is_swinv2: bool = False,
     **kwargs,
 ):
     """get_floc_tissue loads VTC-like tissue with responses to the fLoc stimuli
@@ -57,7 +62,7 @@ def get_floc_tissue(
             print(f"Loaded {cache_id} from cache")
         else:
             responses = get_floc_responses(
-                model, [layer], verbose=True, **kwargs
+                model, [layer], verbose=True, is_swinv2=is_swinv2, **kwargs
             )
             write_pickle(cache_loc, responses)
 

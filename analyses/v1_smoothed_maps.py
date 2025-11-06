@@ -71,8 +71,19 @@ def main():
     is_tdann = "tdann" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
+    is_swinv2 = ("swinv2" in cfg.name)
+
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
+
+    flag = True
+    for name, metric in METRIC_DICT.items():
+        if not (save_dir / f"smoothed_map_{name}.png").exists():
+            flag = False
+
+    if not flag:
+        print(f"All smoothed maps already exist in {save_dir}, exiting...")
+        return
 
     v1_tissue = get_sine_tissue(
         cfg.name,
@@ -81,6 +92,7 @@ def main():
         layer=args.layer,
         output_dir=save_dir,
         smooth_orientation_tuning_curves=False,
+        is_swinv2=is_swinv2
         # skip_cache=True,
     )
 

@@ -135,9 +135,14 @@ def main():
     is_tdann = "tdann" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
+    is_swinv2 = ("swinv2" in cfg.name)
 
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
+
+    if (save_dir / "circular_variance.npz").exists():
+        print(f"Found existing results in {save_dir}, skipping...")
+        return
 
     v1_tissue = get_sine_tissue(
         cfg.name,
@@ -148,6 +153,7 @@ def main():
         normalize_to_ringach_firing_rates=is_tdann,
         smooth_orientation_tuning_curves=False,
         skip_cache=True,
+        is_swinv2=is_swinv2
     )
 
     data = get_circular_variance(v1_tissue, args.layer)

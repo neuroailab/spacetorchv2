@@ -1,5 +1,5 @@
 name: tdann
-output_dir: checkpoints/tdann/positions
+output_dir: checkpoints/tdann/
 wandb: False
 spatial_loss:
   name: 2d_spatial_correlation

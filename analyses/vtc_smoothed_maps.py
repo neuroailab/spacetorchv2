@@ -74,8 +74,22 @@ def main():
     is_tdann = "tdann" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
+    is_swinv2 = ("swinv2" in cfg.name)
+
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
+
+    counter = 0
+    for _ in [2, 3, 4, 6, 8, 10, 12]:
+        if (save_dir / f"vtc_map_smoothed_t{_}.png").exists():
+            print(f"Found existing results in {save_dir}, skipping...")
+            counter += 1
+        else:
+            break
+        if counter == 7:
+            return
+        
+    _t = [2, 3, 4, 6, 8, 10, 12][counter:]
 
     floc_tissue = get_floc_tissue(
         cfg.name,
@@ -83,9 +97,10 @@ def main():
         positions,
         layer=args.layer,
         output_dir=save_dir,
+        is_swinv2=is_swinv2
     )
 
-    for t in range(2, 7):
+    for t in _t:
         fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(1, 1))
 
         ax.add_patch(patches.Rectangle((0, 0), height=70, width=70, facecolor="#ddd"))

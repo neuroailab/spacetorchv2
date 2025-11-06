@@ -546,10 +546,11 @@ def smoothness(curve: np.ndarray) -> float:
     in some quantity as a function of cortical distance
     """
     nans = np.where(np.isnan(curve))[0]
+    
     if len(nans) > 0:
         curve = curve[: nans[0]]
 
-    if np.ptp(curve) == 0:
+    if len(curve) == 0 or np.ptp(curve) == 0:
         return 1
 
     return (np.max(curve) - curve[0]) / np.max(curve)

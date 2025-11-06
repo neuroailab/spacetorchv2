@@ -9,7 +9,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from spacetorch.datasets import sine_gratings
 from spacetorch.datasets import DatasetRegistry
 from spacetorch.types import AggMode
-from spacetorch.utils.generic_utils import load_pickle
+from spacetorch.utils.generic_utils import load_pickle, write_pickle
 from spacetorch.maps.smoother import Smoother, KernelParams
 from spacetorch.maps.v1_map import V1Map
 from spacetorch.feature_extractor import get_features_from_layer
@@ -22,8 +22,12 @@ def get_sine_responses(
     layers,
     verbose: bool = True,
     normalize_to_ringach_firing_rates: bool = True,
+    is_swinv2: bool = False,
 ) -> sine_gratings.SineResponses:
-    dataset = DatasetRegistry.get("SineGrating2019")
+    if is_swinv2:
+        dataset = DatasetRegistry.get("SineGrating2019_192x192")
+    else:
+        dataset = DatasetRegistry.get("SineGrating2019")
     sine_features, _, sine_labels = get_features_from_layer(
         model,
         dataset,
@@ -71,6 +75,7 @@ def get_sine_tissue(
     output_dir: str = "checkpoints/",
     normalize_to_ringach_firing_rates: bool = True,
     smooth_orientation_tuning_curves: bool = True,
+    is_swinv2: bool = False,
 ):
     # check for cached responses
     cache_id = name
@@ -84,8 +89,10 @@ def get_sine_tissue(
             model,
             layers=[layer],
             verbose=True,
-            normalize_to_ringach_firing_rates=normalize_to_ringach_firing_rates
+            normalize_to_ringach_firing_rates=normalize_to_ringach_firing_rates,
+            is_swinv2=is_swinv2
         )
+        # write_pickle(cache_loc, responses)
 
     return V1Map(
         positions.coordinates,

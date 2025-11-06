@@ -68,8 +68,8 @@ class ITMap(TissueMap):
             patches = []
             sel = self.responses.selectivity(
                 selectivity_fn=selectivity_fn, on_categories=contrast.on_categories
-            )
-            print("selectivity:", (sel.min(), sel.max()))
+            )  
+            print("selectivity (mean, median):", (sel.mean(), np.median(sel)))
 
             # create smoothing anchors
             n_anchors = 100

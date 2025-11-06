@@ -78,8 +78,14 @@ def main():
     is_tdann = "tdann" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
+    is_swinv2 = ("swinv2" in cfg.name)
+
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
+
+    if (save_dir / "vtc_selectivity_activation.png").exists():
+        print(f"Found existing results in {save_dir}, skipping...")
+        return
 
     floc_tissue = get_floc_tissue(
         cfg.name,
@@ -87,6 +93,7 @@ def main():
         positions,
         layer=args.layer,
         output_dir=save_dir,
+        is_swinv2=is_swinv2
     )
 
     fig, axs = plt.subplots(figsize=(8, 2.2), nrows=2, ncols=5, gridspec_kw={"wspace": 0.5})
@@ -120,19 +127,6 @@ def main():
             order=contrast_order,
             alpha=0.8,
         )
-        # sns.stripplot(
-        #     data=resp_df,
-        #     x="Category",
-        #     y="Response",
-        #     hue="Category",
-        #     palette=contrast_colors,
-        #     ax=ax,
-        #     order=contrast_order,
-        #     size=0.5,
-        #     alpha=0.8,
-        #     jitter=0.15,
-        #     rasterized=True,
-        # )
         mx = max(resp_df["Response"])
 
         if contrast_name == contrast_order[0]:

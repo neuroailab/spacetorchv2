@@ -25,6 +25,6 @@ variant:
   architecture: vitb16
   params:
     config: supervised_config.yaml
-    pretrained_weights: checkpoints/vitb16_supervised_imagenet_noswapopt_lwx1/model_final_checkpoint_phase299.torch
+    pretrained_weights: checkpoints/vitb16_supervised_imagenet_noswapopt_lwx1/vitb16_supervised_imagenet_noswapopt_lwx1.torch
     resume_path: ""
     dataset_path: /data/ynshah/imagenet

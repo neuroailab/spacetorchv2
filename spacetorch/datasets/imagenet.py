@@ -31,6 +31,19 @@ IMAGENET_TRANSFORMS = torchvision.transforms.Compose(
     ]
 )
 
+
+IMAGENET_TRANSFORMS_192X192 = torchvision.transforms.Compose(
+    [
+        torchvision.transforms.Resize(int(256 / 244 * 192)),
+        torchvision.transforms.CenterCrop(192),
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize(
+            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+        ),
+    ]
+)
+
+
 NUM_TRAIN_IMAGES = 1_281_167
 NUM_VALIDATION_IMAGES = 50_000
 

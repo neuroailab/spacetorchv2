@@ -226,7 +226,7 @@ def analysis_single_layer(model, layer_name, data_loader, hook_dict, max_image_n
     model = model.to(device)
     model.eval()
     
-    for idx, (images, _) in tqdm(enumerate(data_loader), total=max_image_num):
+    for idx, (images, _) in tqdm(enumerate(data_loader), total=8):
         if max_image_num is not None and acummulate_img_index >= max_image_num:
             break
 

@@ -3,11 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 
+from spacetorch.paths import DS_DIR
 from spacetorch.configs import get_cfg
 from spacetorch.variants import get_variant
 from spacetorch.variants.positions import get_positions
 from spacetorch.datasets.floc import DOMAIN_CONTRASTS
 from spacetorch.maps.floc_tissue import get_floc_tissue
+from spacetorch.maps.nsd_floc import load_data
+import spacetorch.utils.rsa as rsa
 from spacetorch.utils.rsa import get_model_rsm
 
 
@@ -46,8 +49,14 @@ def main():
     is_tdann = "tdann" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
+    is_swinv2 = ("swinv2" in cfg.name)
+
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
+
+    if (save_dir / "rsa.npz").exists():
+        print(f"Found existing results in {save_dir}, skipping...")
+        return
 
     floc_tissue = get_floc_tissue(
         cfg.name,
@@ -55,9 +64,33 @@ def main():
         positions,
         layer=args.layer,
         output_dir=save_dir,
+        is_swinv2=is_swinv2
     )
 
     rsm = get_model_rsm(floc_tissue, is_itn=False)
+
+    mat_dir = DS_DIR / "nsd_tvals"
+    subjects = load_data(mat_dir, domains=contrasts, find_patches=True)
+
+    human_rsms = []
+    for subject_idx, subject in enumerate(subjects):
+        for hemi_idx, hemi in enumerate(["left_hemi", "right_hemi"]):
+            human_rsm = rsa.get_human_rsm(subject, hemi)
+            human_rsms.append(human_rsm)
+
+    human2human = []
+    for i, rsm_a in enumerate(human_rsms):
+        for j, rsm_b in enumerate(human_rsms):
+            if i == j:
+                continue
+            human2human.append(rsa.rsm_similarity(rsm_a, rsm_b))
+
+    sims = {
+        "human2human": human2human,
+        "model2human": [rsa.rsm_similarity(rsm, h) for h in human_rsms],
+    }
+
+    np.savez(save_dir / "rsa.npz", **sims)
 
     fig, ax = plt.subplots(figsize=(1.3, 1))
 

@@ -60,6 +60,7 @@ class FeatureSaver:
         self.save_path.parent.mkdir(parents=True, exist_ok=True)
         with h5py.File(self.save_path, "w") as f:
             for k, v in self.features.items():
+                print(k, ":", v.shape)
                 f.create_dataset(k, data=v)
 
     @staticmethod

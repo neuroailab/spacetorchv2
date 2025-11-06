@@ -47,7 +47,7 @@ VTC__KMEANS_THRESH = 10.0
 VTC__PCTILE = 99
 
 
-def process_model_v1(model, positions, src_layer, target_layer):
+def process_model_v1(model, positions, src_layer, target_layer, is_swinv2=False):
     results = {"Wiring Length": [], "Pattern": [], "Window": [], "Shift Direction": []}
 
     wle = WireLengthExperiment(
@@ -56,6 +56,7 @@ def process_model_v1(model, positions, src_layer, target_layer):
         source_layer=src_layer,
         target_layer=target_layer,
         num_patterns=NUM_PATTERNS,
+        is_swinv2=is_swinv2
     )
 
     # run for a number of randomly-selected neighborhoods
@@ -84,7 +85,7 @@ def process_model_v1(model, positions, src_layer, target_layer):
     return pd.DataFrame(results)
 
 
-def process_model_vtc(model, positions, src_layer, target_layer):
+def process_model_vtc(model, positions, src_layer, target_layer, is_swinv2=False):
     results = {"Wiring Length": [], "Pattern": [], "Window": [], "Shift Direction": []}
 
     wle = WireLengthExperiment(
@@ -93,6 +94,7 @@ def process_model_vtc(model, positions, src_layer, target_layer):
         source_layer=src_layer,
         target_layer=target_layer,
         num_patterns=NUM_PATTERNS,
+        is_swinv2=is_swinv2
     )
 
     for pattern in tqdm(range(NUM_PATTERNS), desc="VTC | Pattern"):
@@ -126,10 +128,16 @@ def main():
     save_dir = Path(cfg.output_dir) / args.src_layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
+    is_swinv2 = ("swinv2" in cfg.name)
+
+    if (save_dir / "wiring_length.csv").exists():
+        print(f"Found existing results in {save_dir}, skipping...")
+        return
+
     if args.is_v1:
-        df = process_model_v1(model, positions, args.src_layer, args.target_layer)
+        df = process_model_v1(model, positions, args.src_layer, args.target_layer, is_swinv2=is_swinv2)
     else:
-        df = process_model_vtc(model, positions, args.src_layer, args.target_layer)
+        df = process_model_vtc(model, positions, args.src_layer, args.target_layer, is_swinv2=is_swinv2)
 
     df.to_csv(save_dir / "wiring_length.csv")
 

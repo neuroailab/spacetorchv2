@@ -178,7 +178,7 @@ class DINOv2(BaseArch):
 
     def set_eval_model(self, args):
         eval_model = get_fn(args.variant.setup.eval_model)
-        self.eval_model, _ = eval_model(self.eval_cfg)
+        self.eval_model, _ = eval_model(self.eval_cfg, distributed=False)
 
     def start_training_protocol(self, args):
         self.model.prepare_for_distributed_training()

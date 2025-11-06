@@ -1,0 +1,37 @@
+name: swin_tiny_a_moby_imagenet_swapopt_lwx1_w56
+output_dir: checkpoints/swin_tiny_a_moby_imagenet_swapopt_lwx1_w56
+wandb: False
+spatial_loss:
+  name: 2d_spatial_correlation
+  spatial_weight:
+    layers.0.blocks.0.attn_output: 0.25
+    layers.0.blocks.1.attn_output: 0.25
+    layers.1.blocks.0.attn_output: 0.25
+    layers.1.blocks.1.attn_output: 0.25
+    layers.2.blocks.0.attn_output: 0.25
+    layers.2.blocks.1.attn_output: 0.25
+    layers.2.blocks.2.attn_output: 0.25
+    layers.2.blocks.3.attn_output: 0.25
+    layers.2.blocks.4.attn_output: 0.25
+    layers.2.blocks.5.attn_output: 0.25
+    layers.3.blocks.0.attn_output: 0.25
+    layers.3.blocks.1.attn_output: 0.25
+  position_dir: checkpoints/swin_tiny_a_moby_imagenet/positions/swappedon_SineGrating2019
+swapopt:
+  num_steps: 100000000
+  steps_per_neighborhood: 500
+variant:
+  name: swin_moby
+  architecture: swin_tiny_a
+  setup:
+    train: ""
+    model: ""
+    eval_model: ""
+    config: ""
+    eval: ""
+  params:
+    config: ../Transformer-SSL/configs/moby_swin_tiny_w56.yaml
+    pretrained_weights: checkpoints/swin_tiny_a_moby_imagenet_swapopt_lwx1/swin_tiny_a_moby_imagenet_swapopt_lwx1_w56.pth
+    resume_path: ""
+    dataset_path: /data/ynshah/imagenet
+    seed: 0

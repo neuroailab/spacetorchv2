@@ -1,0 +1,36 @@
+name: vitb16a_mae_imagenet_swapopt
+output_dir: checkpoints/vitb16a_mae_imagenet/positions/swappedon_SineGrating2019
+wandb: False
+spatial_loss:
+  name: 2d_spatial_correlation
+  spatial_weight:
+    blocks.0.attn: 0.
+    blocks.1.attn: 0.
+    blocks.2.attn: 0.
+    blocks.3.attn: 0.
+    blocks.4.attn: 0.
+    blocks.5.attn: 0.
+    blocks.6.attn: 0.
+    blocks.7.attn: 0.
+    blocks.8.attn: 0.
+    blocks.9.attn: 0.
+    blocks.10.attn: 0.
+    blocks.11.attn: 0.
+  position_dir: checkpoints/vitb16a_mae_imagenet/positions/swappedon_SineGrating2019
+swapopt:
+  num_steps: 100000000
+  steps_per_neighborhood: 500
+variant:
+  name: mae
+  architecture: vitb16a
+  setup:
+    train: ../mae/engine_pretrain.py
+    model: ../mae/models_mae.py
+    eval_model: ../mae/models_vit.py
+    config: ""
+    eval: ../mae/engine_finetune.py
+  params:
+    config: ""
+    pretrained_weights: checkpoints/vitb16_mae_imagenet/vitb16_mae_imagenet.pth
+    resume_path: ""
+    dataset_path: /data/ynshah/imagenet/
