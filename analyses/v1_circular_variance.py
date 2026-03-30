@@ -99,12 +99,10 @@ def get_circular_variance(tissue: TissueMap, layer: str):
 
     # shift tuning curves to have min=0 to counter the effect
     # of layer normalization in vision transformers
-    if not "layer" in layer:
+    if "block" in layer:
         x = x + np.abs(np.min(x, axis=1, keepdims=True))
 
     cv = ringach_norm(x)
-
-    np.save("data.npy", cv)
 
     counts = cv_bin(cv, bin_edges)
     for x, y in zip(midpoints, counts):
@@ -112,7 +110,7 @@ def get_circular_variance(tissue: TissueMap, layer: str):
         per_units.append(y)
 
     SEL_THRESH = np.nanmean(cv)
-    per_selective = np.mean(cv < SEL_THRESH) * 100
+    per_selective = np.mean(cv < 0.6) * 100
     
     data = {
         "layer": layer,
@@ -132,7 +130,7 @@ def main():
     variant.set_eval_model(cfg)
 
     model = variant.eval_model
-    is_tdann = "tdann" in cfg.name
+    is_tdann = "tdann" in cfg.name and not "tdann_logpolar" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
     is_swinv2 = ("swinv2" in cfg.name)
@@ -140,9 +138,9 @@ def main():
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    if (save_dir / "circular_variance.npz").exists():
-        print(f"Found existing results in {save_dir}, skipping...")
-        return
+    # if (save_dir / "circular_variance.npz").exists():
+    #     print(f"Found existing results in {save_dir}, skipping...")
+    #     return
 
     v1_tissue = get_sine_tissue(
         cfg.name,
@@ -150,7 +148,7 @@ def main():
         positions,
         layer=args.layer,
         output_dir=save_dir,
-        normalize_to_ringach_firing_rates=is_tdann,
+        normalize_to_ringach_firing_rates=("tdann" in cfg.name) or ("resnet" in cfg.name),
         smooth_orientation_tuning_curves=False,
         skip_cache=True,
         is_swinv2=is_swinv2

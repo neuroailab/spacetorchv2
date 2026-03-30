@@ -210,6 +210,15 @@ class ConViT(BaseArch):
 
     def start_eval_protocol(self):
         pass
+    
+    def set_kinetics_cfg(self, args):
+        pass
+
+    def set_kinetics_protocol(self, args):
+        pass
+    
+    def start_kinetics_protocol(self):
+        pass
 
 
 def load_function_from_file(path, name):

@@ -42,19 +42,20 @@ def main():
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    if (save_dir / "effective_dim.txt").exists():
-        print(f"Found existing results in {save_dir}, skipping...")
-        return
+    # if (save_dir / "effective_dim.txt").exists():
+    #     print(f"Found existing results in {save_dir}, skipping...")
+    #     return
 
     is_swinv2 = ("swinv2" in cfg.name)
 
-    dataset = DatasetRegistry.get(args.dataset_name or ("ImageNet" if not is_swinv2 else "ImageNet192x192"))
+    dataset_name = args.dataset_name or "TVSD"
+    dataset = DatasetRegistry.get(dataset_name)
     
     features = get_features_from_layer(
         model=model,
         dataset=dataset,
         verbose=True,
-        max_batches=79,
+        max_batches=8,
         batch_size=128,
         model_layer_strings=[args.layer]
     )
@@ -66,7 +67,7 @@ def main():
     eigvals = compute_eigvals(pooled_features)
     eff_dim = effective_dim(eigvals=eigvals)
 
-    with open(save_dir / "effective_dim.txt", "w") as f:
+    with open(save_dir / f"effective_dim_{dataset_name}.txt", "w") as f:
         f.write(f"{eff_dim.item()}")
 
 

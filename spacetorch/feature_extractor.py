@@ -57,6 +57,7 @@ class FeatureExtractor:
         model_layer_strings: Union[str, List[str]],
         return_inputs_and_labels: bool = False,
         reshape: bool = True,
+        reduce_along_hw: bool = False,
     ):
 
         if not isinstance(model_layer_strings, list):
@@ -139,6 +140,10 @@ class FeatureExtractor:
                     # Reshape to (N, C, H, W) format for compatibility with conv-style processing
                     self.layer_feats[k] = self.layer_feats[k].reshape(N, sL, sL, H).transpose(0, 3, 1, 2)
 
+            if reduce_along_hw:
+                # average pool along height and width dimensions
+                self.layer_feats[k] = self.layer_feats[k].mean(axis=(-2, -1))
+
         # corner case: for a single layer, just return features
         if len(self.layer_feats) == 1:
             self.layer_feats = self.layer_feats[model_layer_strings[0]]
@@ -179,6 +184,7 @@ def get_features_from_layer(
     verbose: bool = True,
     spatial_mp: bool = False,
     reshape: bool = True,
+    reduce_along_hw: bool = False,
 ) -> ReturnedFeatures:
     """Workhorse feature extractor.
 
@@ -212,5 +218,5 @@ def get_features_from_layer(
         dataloader, n_batches, verbose=verbose, spatial_mp=spatial_mp
     )
     return extractor.extract_features(
-        model, model_layer_strings, return_inputs_and_labels=return_inputs_and_labels, reshape=reshape
+        model, model_layer_strings, return_inputs_and_labels=return_inputs_and_labels, reshape=reshape, reduce_along_hw=reduce_along_hw
     )

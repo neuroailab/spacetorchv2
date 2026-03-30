@@ -57,7 +57,7 @@ def main():
     variant.set_eval_model(cfg)
 
     model = variant.eval_model
-    is_tdann = "tdann" in cfg.name
+    is_tdann = "tdann" in cfg.name and not "tdann_logpolar" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
     is_swinv2 = ("swinv2" in cfg.name)
@@ -65,9 +65,9 @@ def main():
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    if (save_dir / "vtc_smoothness.npz").exists():
-        print(f"Found existing results in {save_dir}, skipping...")
-        return
+    # if (save_dir / "vtc_smoothness.npz").exists():
+    #     print(f"Found existing results in {save_dir}, skipping...")
+    #     return
 
     floc_tissue = get_floc_tissue(
         cfg.name,
@@ -115,13 +115,13 @@ def main():
     np.savez(save_dir / "vtc_smoothness.npz", **smoothness_results)
     np.savez(save_dir / "vtc_delta_selectivity.npz", **curve_dict)
 
-    fig, curves_row = plt.subplots(figsize=(4, 1), ncols=5, nrows=1)
+    fig, curves_row = plt.subplots(figsize=(4, 1), ncols=5, nrows=1, sharey=True)
 
     for ax, contrast_name in zip(curves_row, contrast_order):
         res = curve_dict[contrast_name]
         curves = np.stack(res["Curves"])
-        mn_curve = np.mean(curves, axis=0)
-        se = np.std(curves, axis=0)
+        mn_curve = np.nanmean(curves, axis=0)
+        se = np.nanstd(curves, axis=0)
 
         dist = res["Distances"][: len(mn_curve)]
         line_handle = ax.plot(

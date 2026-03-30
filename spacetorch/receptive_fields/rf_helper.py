@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import torch 
 import math
+import numpy as np
 from tqdm import tqdm
 
 
@@ -219,50 +220,68 @@ def update_numbers_to_global_smallest(input_list):
     return updated_list
 
 
-def analysis_single_layer(model, layer_name, data_loader, hook_dict, max_image_num=None, device="cuda"):
+def analysis_single_layer(model, layer_name, scale_factor, data_loader, hook_dict, max_image_num=None, device="cuda", gradient="raw", point="center", transform=None, what=None):
    
     average_image_dict = OrderedDict()
+    point_dict = {
+        "shape": None,
+        "points": None,
+    }
     acummulate_img_index = 0
     model = model.to(device)
     model.eval()
     
-    for idx, (images, _) in tqdm(enumerate(data_loader), total=8):
+    for idx, (images, _) in tqdm(enumerate(data_loader), total=16):
         if max_image_num is not None and acummulate_img_index >= max_image_num:
             break
 
-        # if idx < max_image_num:
-        #     continue
-
-        # if idx > max_image_num:
-        #     break
-            
         input_tensor = images
         input_tensor = input_tensor.to(device)
-        input_tensor.requires_grad = True
+        if gradient == "raw":
+            input_tensor.requires_grad = True
 
-        central_points_scale = 2
-        
-        model(input_tensor)
-            
+        transformed_input = input_tensor
+
+        transformed_input = imagenet_normalize(transformed_input)
+        if gradient == "transformed":
+            transformed_input.requires_grad = True
+
+        central_points_scale = scale_factor
+
+        model(transformed_input)
+
         k = layer_name
         v = hook_dict[layer_name]
 
         central_points = find_central_positions_cnn(v, int(central_points_scale))
 
+        # optionally choose points near the periphery
+        if point == "periphery":
+            _, _, H, W = v.shape
+            dh = H // 4
+            dw = W // 4
+            central_points = [
+                (max(0, min(H - 1, h + dh)),
+                max(0, min(W - 1, w + dw)))
+                for h, w in central_points
+            ]
+
         v = v.abs().sum(dim=0)
         v = v.sum(dim=0)
 
-        specific_value=0.0
+        specific_value = 0.0
         for (a,b) in central_points:
-            specific_value = specific_value+ v[a,b]
-        
+            specific_value = specific_value + v[a,b]
+
         specific_value.backward(retain_graph=True)
 
-        input_gradient= input_tensor.grad
-        input_gradient= input_gradient.abs().mean(dim=1)
-        input_gradient= input_gradient.abs().mean(dim=0,keepdim=True)
+        if gradient == "raw":
+            input_gradient = input_tensor.grad.abs()
+            input_tensor.grad.zero_()
+        elif gradient == "transformed":
+            input_gradient = transformed_input.grad.abs()
+            transformed_input.grad.zero_()
 
-        input_tensor.grad.zero_()
         key = f'{k}'
 
         if key not in average_image_dict:
@@ -273,4 +292,39 @@ def analysis_single_layer(model, layer_name, data_loader, hook_dict, max_image_n
                 
         acummulate_img_index = acummulate_img_index + images.shape[0]
     
-    return  average_image_dict, hook_dict
+        point_dict["shape"] = v.shape
+        point_dict["points"] = np.array(central_points)
+    
+    return  average_image_dict[layer_name], point_dict
+
+
+class TransformBatch:
+    def __init__(self, transform_func):
+        self.transform_func = transform_func
+
+    def __call__(self, x):
+        """
+        x: torch.Tensor
+           (C, H, W) or (B, C, H, W)
+        """
+        if x.dim() == 3:
+            return self.transform_func(x).to(x.device)
+
+        elif x.dim() == 4:
+            return torch.stack([self.transform_func(img) for img in x], dim=0).to(x.device)
+
+        else:
+            raise ValueError("Expected 3D or 4D tensor")
+
+
+def imagenet_normalize(x):
+    IMAGENET_MEAN = torch.tensor([0.485, 0.456, 0.406])
+    IMAGENET_STD  = torch.tensor([0.229, 0.224, 0.225])
+
+    mean = IMAGENET_MEAN.to(x.device)[..., None, None]
+    std  = IMAGENET_STD.to(x.device)[..., None, None]
+
+    if x.dim() == 3:
+        return (x - mean) / std
+    else:
+        return (x - mean[None]) / std[None]

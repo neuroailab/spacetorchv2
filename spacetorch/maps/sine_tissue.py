@@ -22,7 +22,10 @@ def get_sine_responses(
     layers,
     verbose: bool = True,
     normalize_to_ringach_firing_rates: bool = True,
+    reduce_along_hw: bool = False,
     is_swinv2: bool = False,
+    is_llcnn: bool = False,
+    is_lcnn: bool = False,
 ) -> sine_gratings.SineResponses:
     if is_swinv2:
         dataset = DatasetRegistry.get("SineGrating2019_192x192")
@@ -34,9 +37,10 @@ def get_sine_responses(
         model_layer_strings=layers,
         verbose=verbose,
         return_inputs_and_labels=True,
+        reduce_along_hw=reduce_along_hw,
     )
 
-    return sine_gratings.SineResponses(sine_features, sine_labels, normalize_to_ringach_firing_rates=normalize_to_ringach_firing_rates)
+    return sine_gratings.SineResponses(sine_features, sine_labels, normalize_to_ringach_firing_rates=normalize_to_ringach_firing_rates, is_llcnn=is_llcnn, is_lcnn=is_lcnn)
 
 
 def get_smoothed_map(

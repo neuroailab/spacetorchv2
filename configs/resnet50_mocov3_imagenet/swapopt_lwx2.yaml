@@ -1,0 +1,40 @@
+name: resnet50_mocov3_imagenet_swapopt_lwx2
+output_dir: checkpoints/resnet50_mocov3_imagenet_swapopt_lwx2
+wandb: False
+spatial_loss:
+  name: 2d_spatial_correlation
+  spatial_weight:
+    layer1.0: 0.5
+    layer1.1: 0.5
+    layer1.2: 0.5
+    layer2.0: 0.5
+    layer2.1: 0.5
+    layer2.2: 0.5
+    layer2.3: 0.5
+    layer3.0: 0.5
+    layer3.1: 0.5
+    layer3.2: 0.5
+    layer3.3: 0.5
+    layer3.4: 0.5
+    layer3.5: 0.5
+    layer4.0: 0.5
+    layer4.1: 0.5
+    layer4.2: 0.5
+  position_dir: checkpoints/resnet50_mocov3_imagenet/positions/swappedon_SineGrating2019
+swapopt:
+  num_steps: 100000000
+  steps_per_neighborhood: 500
+variant:
+  name: resnet50_mocov3
+  architecture: resnet50
+  setup:
+    train: ../moco-v3/main_moco.py
+    model: ../moco-v3/main_moco.py
+    eval_model: ../moco-v3/vits.py
+    config: ""
+    eval: ../moco-v3/main_lincls.py
+  params:
+    config: ""
+    pretrained_weights: checkpoints/resnet50_mocov3_imagenet_swapopt_lwx2/resnet50_mocov3_imagenet_swapopt_lwx2.pth.tar
+    resume_path: ""
+    dataset_path: /data/ynshah/imagenet/

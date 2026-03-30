@@ -164,7 +164,8 @@ class SpatialSSLTensorboardHook(SSLTensorboardHook):
                         global_step=iteration,
                     )
 
-                logging.info(f"{dict(task.last_batch.spatial_loss.items())}")
+                log_dict = {layer: loss.item() for layer, loss in task.last_batch.spatial_loss.items()}
+                logging.info(f"{log_dict}")
 
             # Batch processing time
             if len(task.batch_time) > 0:

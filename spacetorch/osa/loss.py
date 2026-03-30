@@ -97,9 +97,10 @@ class ViTEnsFeatHook(ViTFeatHook):
     def __init__(self, hook: nn.Module, key: str, feat: int = 0, coefficient: float = 1.0):
         super().__init__(hook, key, coefficient)
         self.f = feat
+        self.key = key
 
     def loss(self, x: torch.tensor):
         d, o = self.hook(x)
-        all_feats = d[self.key][0][:, 1:, :].mean(dim=1)  # Exclude CLS
+        all_feats = d[self.key][:, 1:, :].mean(dim=1)  # Exclude CLS
         mn = min(all_feats.shape)
         return - all_feats[:mn, self.f].diag().mean()

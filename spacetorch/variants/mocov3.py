@@ -23,6 +23,7 @@ from pathlib import Path
 from functools import partial
 from torch.utils.tensorboard import SummaryWriter
 
+from spacetorch.configs.dotpath import get_fn
 import spacetorch.variants.assets.moco.loader as loader
 import spacetorch.variants.assets.moco.builder as builder
 from spacetorch.utils.torch_utils import resolve_sequential_module_from_str
@@ -169,6 +170,44 @@ class MoCov3(BaseArch):
             mp.spawn(self.eval_main, nprocs=ngpus_per_node, args=(ngpus_per_node, self.eval_cfg))
         else:
             self.eval_main(self.eval_cfg.gpu, ngpus_per_node, self.eval_cfg)
+
+    def set_kinetics_cfg(self, args):
+        self.eval_cfg = argparse.Namespace(**{
+            "output_dir": Path(args.output_dir) / "kinetics",
+            "config_file": "../dinov2/dinov2/configs/train/vitb14_short.yaml",
+            "opts": [],
+            "pretrained_weights": args.variant.params.pretrained_weights,
+            "train_dataset_str": "Kinetics400:split=TRAIN:root=/data2/ynshah/Kinetics400/k400/:extra=./",
+            "val_dataset_str": "Kinetics400:split=VAL:root=/data2/ynshah/Kinetics400/k400/:extra=./",
+        })
+        config_file = get_fn("dinov2.utils.config.setup")
+        config_file(self.eval_cfg)
+
+    def set_kinetics_protocol(self, args):
+        eval = get_fn("dinov2.eval.linear.run_eval_linear")
+        self.eval_protocol = eval
+    
+    def start_kinetics_protocol(self):
+        self.eval_protocol(
+            model=self.eval_model,
+            output_dir=self.eval_cfg.output_dir,
+            train_dataset_str=self.eval_cfg.train_dataset_str,
+            val_dataset_str=self.eval_cfg.val_dataset_str,
+            test_dataset_strs=None,
+            batch_size=32,
+            epochs=10,
+            epoch_length=1250,
+            num_workers=8,
+            save_checkpoint_frequency=20,
+            eval_period_iterations=1250,
+            learning_rates=[1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2, 2e-2, 5e-2, 0.1],
+            autocast_dtype=torch.half,
+            resume=False,
+            classifier_fpath="",
+            test_metric_types=None,
+            val_class_mapping_fpath=None,
+            test_class_mapping_fpaths=[None],
+        )
 
 
 def load_function_from_file(path, name):

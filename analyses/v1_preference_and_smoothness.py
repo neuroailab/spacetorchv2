@@ -124,7 +124,7 @@ def main():
     variant.set_eval_model(cfg)
 
     model = variant.eval_model
-    is_tdann = "tdann" in cfg.name
+    is_tdann = "tdann" in cfg.name and not "tdann_logpolar" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
     is_swinv2 = ("swinv2" in cfg.name)
@@ -132,9 +132,9 @@ def main():
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    if (save_dir / "v1_smoothness.npy").exists():
-        print(f"Found existing results in {save_dir}, skipping...")
-        return
+    # if (save_dir / "v1_smoothness.npy").exists():
+    #     print(f"Found existing results in {save_dir}, skipping...")
+    #     return
 
     v1_tissue = get_sine_tissue(
         cfg.name,
@@ -143,16 +143,21 @@ def main():
         layer=args.layer,
         output_dir=save_dir,
         smooth_orientation_tuning_curves=False,
-        is_swinv2=is_swinv2
-        # skip_cache=True,
+        is_swinv2=is_swinv2,
+        skip_cache=True,
     )
 
     # macaque_tissue = get_macaque_tissues()
     # smoothness_results, curve_dict = get_smoothness(0.75, macaque_tissue, "macaque")
 
-    smoothness_results, curve_dict = get_smoothness(3.5, v1_tissue, "not macaque")
-    np.save(save_dir / "v1_smoothness.npy", smoothness_results)
-    np.savez(save_dir / "v1_preference.npz", **curve_dict)
+    try:
+        column_spacing = np.load(save_dir / "pinwheel_density.npz", allow_pickle=True)["column_spacing_in_mm"].item()
+    except:
+        print("Please run v1_pinwheel_density.py first to compute hypercolumn spacing.")
+
+    smoothness_results, curve_dict = get_smoothness(column_spacing, v1_tissue, "not macaque")
+    np.save(save_dir / "v1_smoothness_right_hypercolumn.npy", smoothness_results)
+    np.savez(save_dir / "v1_preference_right_hypercolumn.npz", **curve_dict)
 
     plt.figure(figsize=(1.5, 1.5))
     b = plt.bar(smoothness_results["Metric"], smoothness_results["Smoothness"], color="black")
@@ -161,7 +166,7 @@ def main():
         plt.text(rect.get_x() + rect.get_width() / 2.0, height, f'{height:.3f}', ha='center', va='bottom', fontsize=7)
     plt.ylabel("Smoothness")
     plt.yticks([0, 1])
-    plt.savefig(save_dir / "v1_smoothness.png", bbox_inches="tight", dpi=300)
+    plt.savefig(save_dir / "v1_smoothness_right_hypercolumn.png", bbox_inches="tight", dpi=300)
 
     _, axs = plt.subplots(1, 3, figsize=(4.5, 1.5), constrained_layout=True)
     labels = {"angles": "Change in\npreferred orientation", "sfs": "Change in\nspatial frequency", "colors": "Fraction prefer.\nother color"}
@@ -174,7 +179,7 @@ def main():
         axs[i].set_ylabel(labels[metric_name], fontsize=7)
         axs[i].set_yticks([0, 1])
         axs[i].set_xlabel("Pairwise Distance", fontsize=7)
-        plt.savefig(save_dir / "v1_preference.png", bbox_inches="tight", dpi=300)
+        plt.savefig(save_dir / "v1_preference_right_hypercolumn.png", bbox_inches="tight", dpi=300)
     
 
 if __name__ == "__main__":

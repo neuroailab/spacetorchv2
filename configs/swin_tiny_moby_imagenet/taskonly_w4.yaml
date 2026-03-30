@@ -1,5 +1,5 @@
-name: swin_tiny_moby_imagenet
-output_dir: checkpoints/swin_tiny_moby_imagenet_s2
+name: swin_tiny_moby_imagenet_w4
+output_dir: checkpoints/swin_tiny_moby_imagenet_w4
 wandb: False
 spatial_loss:
   name: 2d_spatial_correlation
@@ -16,7 +16,7 @@ spatial_loss:
     layers.2.blocks.5: 0.
     layers.3.blocks.0: 0.
     layers.3.blocks.1: 0.
-  position_dir: checkpoints/swin_tiny_moby_imagenet/positions
+  position_dir: checkpoints/swin_tiny_moby_imagenet/positions/swappedon_SineGrating2019
 swapopt:
   num_steps: 100000000
   steps_per_neighborhood: 500
@@ -31,7 +31,7 @@ variant:
     eval: ""
   params:
     config: ../Transformer-SSL/configs/moby_swin_tiny_w4.yaml
-    pretrained_weights: checkpoints/swin_tiny_moby_imagenet/swin_tiny_moby_imagenet.pth
+    pretrained_weights: checkpoints/swin_tiny_moby_imagenet_w4/swin_tiny_moby_imagenet_w4.pth
     resume_path: ""
     dataset_path: /data/ynshah/imagenet
-    seed: 2
+    seed: 0

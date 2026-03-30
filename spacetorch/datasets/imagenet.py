@@ -20,6 +20,15 @@ class ImageNetResponses:
         return self._data.sizes["unit_idx"]
 
 
+IMAGENET_TRANSFORMS_UNNORMALIZED = torchvision.transforms.Compose(
+    [
+        torchvision.transforms.Resize(256),
+        torchvision.transforms.CenterCrop(224),
+        torchvision.transforms.ToTensor(),
+    ]
+)
+
+
 IMAGENET_TRANSFORMS = torchvision.transforms.Compose(
     [
         torchvision.transforms.Resize(256),

@@ -75,7 +75,7 @@ def main():
     variant.set_eval_model(cfg)
 
     model = variant.eval_model
-    is_tdann = "tdann" in cfg.name
+    is_tdann = "tdann" in cfg.name and not "tdann_logpolar" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
     is_swinv2 = ("swinv2" in cfg.name)

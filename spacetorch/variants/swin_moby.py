@@ -6,11 +6,9 @@ import math
 import torch
 import wandb
 import importlib.util
-import numpy as np
 import torch.distributed as dist
 import torch.distributed as dist
 from pathlib import Path
-from scipy import interpolate
 
 from spacetorch.utils.torch_utils import resolve_sequential_module_from_str
 from spacetorch.utils.generic_utils import convert_to_serializable
@@ -20,6 +18,7 @@ from spacetorch.losses.losses_torch import spatial_correlation_loss
 from spacetorch.utils.gpu_utils import is_master_process
 from spacetorch.variants.assets.swin_moby.moby_main import main
 from spacetorch.variants.assets.swin_moby.moby_linear import main as eval_main
+from spacetorch.variants.assets.swin_moby.moby_kinetics import main as kinetics_main
 from spacetorch.variants.assets.swin_moby.models.build import build_model
 from spacetorch.variants.assets.swin_moby.config import get_config
 
@@ -122,6 +121,8 @@ class SwinMoBY(BaseArch):
         self.positions = self._load_positions(args.spatial_loss.position_dir)
 
     def set_eval_model(self, args):
+        if self.eval_cfg is None:
+            self.set_eval_cfg(args)
         self.eval_model = build_model(self.eval_cfg)
         if args.variant.params.pretrained_weights:
             self._load_pretrained_weights(args, self.eval_model)
@@ -137,6 +138,56 @@ class SwinMoBY(BaseArch):
 
     def start_eval_protocol(self):
         eval_main(self.eval_cfg)
+
+    def set_kinetics_cfg(self, args):
+        variant_args = argparse.Namespace(**{
+            "cfg": "../Transformer-SSL/configs/moby_swin_tiny.yaml",
+            "batch_size": 32,
+            "opts": [],
+            "data_path": "/data2/ynshah/Kinetics400/k400/",
+            "zip": False,
+            "cache_mode": "no",
+            "resume": "",
+            "accumulation_steps": 0,
+            "use_checkpoint": False,
+            "amp_opt_level": "O0",
+            "seed": 0,
+            "output": str(Path(args.output_dir) / "kinetics"),
+            "tag": "",
+            "eval": False,
+            "throughput": False,
+            "distributed": True,
+            "local_rank": 0,
+            "lr": 1.0,
+            "drop_path_rate": 0.2,
+        })
+        variant_cfg = get_config(variant_args)
+        variant_cfg.defrost()
+        variant_cfg.DATA.DATASET = 'kinetics400'
+        variant_cfg.LINEAR_EVAL.PRETRAINED = args.variant.params.pretrained_weights
+        variant_cfg.OUTPUT = os.path.join(variant_args.output, "kinetics")
+        variant_cfg.MODEL.TYPE = 'linear'
+        variant_cfg.MODEL.DROP_PATH_RATE = variant_args.drop_path_rate
+        variant_cfg.AUG.SSL_AUG = False
+        variant_cfg.AUG.SSL_LINEAR_AUG = True
+        variant_cfg.AUG.MIXUP = 0.0
+        variant_cfg.AUG.CUTMIX = 0.0
+        variant_cfg.AUG.CUTMIX_MINMAX = None
+        variant_cfg.TRAIN.EPOCHS = 10
+        variant_cfg.TRAIN.WARMUP_EPOCHS = 5
+        variant_cfg.TRAIN.LR_SCHEDULER.NAME = 'cosine'
+        variant_cfg.TRAIN.OPTIMIZER.NAME = 'sgd'
+        variant_cfg.TRAIN.OPTIMIZER.MOMENTUM = 0.9
+        variant_cfg.TRAIN.BASE_LR = variant_args.lr
+        variant_cfg.TRAIN.WEIGHT_DECAY = 0.0
+        variant_cfg.freeze()
+        self.kinetics_cfg = variant_cfg
+
+    def set_kinetics_protocol(self, args):
+        pass
+    
+    def start_kinetics_protocol(self):
+        kinetics_main(self.kinetics_cfg)
 
 
 def load_function_from_file(path, name):

@@ -65,7 +65,7 @@ def swap_optimize_positions(
     loss_fn = loss_params.pop("loss_fn", losses.standard_scl)
 
     # set random seed, if provided
-    rng = np.random.default_rng(seed=RNG_SEED)
+    rng = np.random.default_rng(seed=seed or RNG_SEED)
 
     # compute unit x unit correlations
     correlations = np.corrcoef(features.T)
@@ -164,7 +164,7 @@ def swap_optimize_neighborhoods(
     metrics = Metrics()
 
     # set random seed, if provided
-    rng = np.random.default_rng(seed=RNG_SEED)
+    rng = np.random.default_rng(seed=seed or RNG_SEED)
 
     num_neighborhoods = int(np.ceil(num_steps / steps_per_neighborhood))
 

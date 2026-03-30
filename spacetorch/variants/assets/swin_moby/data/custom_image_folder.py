@@ -23,6 +23,7 @@ class CustomImageFolder(datasets.ImageFolder):
         if self.transform is not None:
             for t in self.transform:
                 ret.append(t(image))
+            # ret.append(self.transform(image))
         else:
             ret.append(image)
         if self.target_transform is not None:

@@ -69,7 +69,7 @@ def main():
     variant.set_eval_model(cfg)
 
     model = variant.eval_model
-    is_tdann = "tdann" in cfg.name
+    is_tdann = "tdann" in cfg.name and not "tdann_logpolar" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
     is_swinv2 = ("swinv2" in cfg.name)
@@ -77,9 +77,9 @@ def main():
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    if (save_dir / "v1_maps_full.png").exists():
-        print(f"Found existing results in {save_dir}, skipping...")
-        return
+    # if (save_dir / "v1_maps_full.png").exists():
+    #     print(f"Found existing results in {save_dir}, skipping...")
+    #     return
 
     v1_tissue = get_sine_tissue(
         cfg.name,
@@ -88,8 +88,8 @@ def main():
         layer=args.layer,
         output_dir=save_dir,
         smooth_orientation_tuning_curves=False,
-        is_swinv2=is_swinv2
-        # skip_cache=True,
+        is_swinv2=is_swinv2,
+        skip_cache=True,
     )
 
     fig, axs = plt.subplots(ncols=1, nrows=3, figsize=(1, 3))

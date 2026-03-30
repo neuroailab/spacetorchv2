@@ -56,7 +56,7 @@ def main():
         positions,
         layer=args.layer,
         output_dir=save_dir,
-        # skip_cache=True,
+        skip_cache=True,
     )
 
     fig = plt.figure(figsize=(2, 2))

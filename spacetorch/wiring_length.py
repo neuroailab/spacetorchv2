@@ -124,8 +124,12 @@ class WireLengthExperiment:
         self.target_layer = target_layer
         self.is_swinv2 = is_swinv2
 
-        self.source_positions = self.layer_positions[self.source_layer].coordinates
-        self.target_positions = self.layer_positions[self.target_layer].coordinates
+        try:
+            self.source_positions = self.layer_positions[self.source_layer].coordinates
+            self.target_positions = self.layer_positions[self.target_layer].coordinates
+        except:
+            self.source_positions = self.layer_positions[self.source_layer]
+            self.target_positions = self.layer_positions[self.target_layer]
 
         self.source_extent = np.ptp(self.source_positions[:, 0])
 

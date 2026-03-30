@@ -1,9 +1,10 @@
-from .imagenet import ImageNetData, IMAGENET_TRANSFORMS, IMAGENET_TRANSFORMS_192X192
+from .imagenet import ImageNetData, IMAGENET_TRANSFORMS, IMAGENET_TRANSFORMS_UNNORMALIZED, IMAGENET_TRANSFORMS_192X192
 from .sine_gratings import SineGrating2019
 from .floc import fLocData
 from .retinal_waves import RetinalWaveData, DEFAULT_RWAVE_DIRS
 from .noise import NoiseImages, NOISE_TRANSFORMS
 from .nsd import NSDImages, NSD_TRANSFORMS
+from .tvsd import TVSDImages, TVSD_TRANSFORMS
 
 import torchvision
 from spacetorch import paths
@@ -42,9 +43,14 @@ _DATASETS = {
     "fLoc": (fLocData, (paths.FLOC_DIR, DEFAULT_TRANSFORMS)),
     "fLoc192x192": (fLocData, (paths.FLOC_DIR, DEFAULT_TRANSFORMS_192x192)),
     "NSD": (NSDImages, (paths.NSD_PATH, NSD_TRANSFORMS)),
+    "TVSD": (TVSDImages, (paths.TVSD_PATH, TVSD_TRANSFORMS)),
     "ImageNet": (
         ImageNetData,
         (paths.DEFAULT_IMAGENET_VAL_DIR, IMAGENET_TRANSFORMS),
+    ),
+    "ImageNet_Unnormalized": (
+        ImageNetData,
+        (paths.DEFAULT_IMAGENET_VAL_DIR, IMAGENET_TRANSFORMS_UNNORMALIZED),
     ),
     "ImageNet192x192": (
         ImageNetData,

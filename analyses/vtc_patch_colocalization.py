@@ -83,7 +83,7 @@ def main():
     variant.set_eval_model(cfg)
 
     model = variant.eval_model
-    is_tdann = "tdann" in cfg.name
+    is_tdann = "tdann" in cfg.name and not "tdann_logpolar" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
     is_swinv2 = ("swinv2" in cfg.name)
@@ -91,17 +91,17 @@ def main():
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    counter = 0
-    for _ in [2, 3, 4, 6, 8, 10, 12]:
-        if (save_dir / f"vtc_patch_coloc_t{_}.npz").exists():
-            print(f"Found existing results in {save_dir}, skipping...")
-            counter += 1
-        else:
-            break
-        if counter == 7:
-            return
+    # counter = 0
+    # for _ in [2, 3, 4, 6, 8, 10, 12]:
+    #     if (save_dir / f"vtc_patch_coloc_t{_}.npz").exists():
+    #         print(f"Found existing results in {save_dir}, skipping...")
+    #         counter += 1
+    #     else:
+    #         break
+    #     if counter == 7:
+    #         return
         
-    _t = [2, 3, 4, 6, 8, 10, 12][counter:]
+    _t = [2, 3, 4, 6, 8, 10, 12][:]
 
     floc_tissue = get_floc_tissue(
         cfg.name,

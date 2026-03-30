@@ -3,11 +3,23 @@ output_dir: checkpoints/tdann/
 wandb: False
 spatial_loss:
   name: 2d_spatial_correlation
-  spatial_weight: 0.
+  spatial_weight:
+    layer1.0: 0.
+    layer1.1: 0.
+    layer2.0: 0.
+    layer2.1: 0.
+    layer3.0: 0.
+    layer3.1: 0.
+    layer4.0: 0.
+    layer4.1: 0.
   position_dir: checkpoints/tdann/positions
+swapopt:
+  num_steps: 100000000
+  steps_per_neighborhood: 500
 variant:
   name: tdann
   architecture: resnet18
   params:
     pretrained_weights: checkpoints/tdann/pretrained/model_final_checkpoint_phase199.torch
     dataset_path: ImageNet:split=TRAIN:root=/data/ynshah/imagenet/:extra=/data/ynshah/imagenet/extra
+    config: tdann_taskonly_config.yaml

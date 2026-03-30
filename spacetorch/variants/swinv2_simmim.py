@@ -99,6 +99,15 @@ class SwinV2SimMIM(BaseArch):
     def start_eval_protocol(self):
         pass
 
+    def set_kinetics_cfg(self, args):
+        pass
+
+    def set_kinetics_protocol(self, args):
+        pass
+    
+    def start_kinetics_protocol(self):
+        pass
+
 
 def remap_pretrained_keys_swin(model, checkpoint_model):
     state_dict = model.state_dict()

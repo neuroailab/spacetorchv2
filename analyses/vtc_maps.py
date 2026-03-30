@@ -71,7 +71,7 @@ def main():
     variant.set_eval_model(cfg)
 
     model = variant.eval_model
-    is_tdann = "tdann" in cfg.name
+    is_tdann = "tdann" in cfg.name and not "tdann_logpolar" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
     is_swinv2 = ("swinv2" in cfg.name)
@@ -79,9 +79,9 @@ def main():
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    if (save_dir / "vtc_map_contrasts.png").exists():
-        print(f"Found existing results in {save_dir}, skipping...")
-        return
+    # if (save_dir / "vtc_map_contrasts.png").exists():
+    #     print(f"Found existing results in {save_dir}, skipping...")
+    #     return
 
     floc_tissue = get_floc_tissue(
         cfg.name,
@@ -94,42 +94,22 @@ def main():
 
     fig, axs = plt.subplots(1, 5, figsize=(10, 2))
 
+    max_sel = 0
+    for ax, contrast in zip(axs, DOMAIN_CONTRASTS):
+        z = floc_tissue.responses.selectivity(on_categories=contrast.on_categories)
+        max_sel = max(max_sel, max(z))
+    print(max_sel)
+
     for ax, contrast in zip(axs, DOMAIN_CONTRASTS):
         z = floc_tissue.responses.selectivity(on_categories=contrast.on_categories)
 
-        ax.scatter(x=positions.coordinates[:, 0], y=positions.coordinates[:, 1], s=(np.abs(z) / np.max(z)), c=z, cmap='seismic')
+        ax.scatter(x=positions.coordinates[:, 0], y=positions.coordinates[:, 1], s=(np.abs(z) / np.max(z)) * 5, c=z, cmap='seismic', vmax=max_sel, vmin=-max_sel)
 
         ax.set_title(contrast.name)
         
         ax.axis("off")
 
     fig.savefig(save_dir / f"vtc_map_contrasts.png", dpi=300, bbox_inches="tight")
-
-    fig, axs = plt.subplots(ncols=20, nrows=1, figsize=(20, 1))
-
-    for t in tqdm(range(0, 100, 5)):
-        axs[t // 5].add_patch(patches.Rectangle((0, 0), height=70, width=70, facecolor="#ddd"))
-
-        floc_tissue.make_selectivity_map(
-            axs[t // 5],
-            marker=".",
-            contrasts=contrasts,
-            scale_points=False,
-            foreground_alpha=0.8,
-            t=t,
-            rasterized=True,
-            edgecolor=(0, 0, 0, 0.4),
-            final_s=5,
-            linewidths=0,
-        )
-
-        axs[t // 5].set_xlim([0, 70])
-        axs[t // 5].set_ylim([0, 70])
-        axs[t // 5].axis("off")
-
-        add_scale_bar(axs[t // 5], 10, y_start=0)
-        
-    fig.savefig(save_dir / f"vtc_map.png", dpi=300, bbox_inches="tight", transparent=True)
 
 
 if __name__ == "__main__":

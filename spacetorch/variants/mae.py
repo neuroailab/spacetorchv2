@@ -46,7 +46,7 @@ class MAE(BaseArch):
             "dist_on_itp": False,
             "dist_url": "env://",
             "data_path": args.variant.params.dataset_path,
-            "batch_size": 128,
+            "batch_size": 64,
             "epochs": 400,
             "accum_iter": 1,
             "model": "mae_vit_base_patch16",
@@ -66,6 +66,9 @@ class MAE(BaseArch):
             "epochs": 90,
             "accum_iter": 1,
             "model": "vit_base_patch16",
+            # "input_size": 224,
+            # "mask_ratio": 0.75,
+            # "norm_pix_loss": True,
             "weight_decay": 0,
             "lr": None,
             "blr": 0.1,
@@ -84,7 +87,7 @@ class MAE(BaseArch):
             "eval": False,
             "dist_eval": True,
             "num_workers": 10,
-            "pin_mem": True,
+            "pin_mem": False,
             "world_size": 1,
             "local_rank": -1,
             "dist_on_itp": False,
@@ -132,6 +135,8 @@ class MAE(BaseArch):
             num_classes=1000,
             global_pool=False,
         )
+        # models_mae = load_function_from_file(args.variant.setup.eval_model, "models_mae")
+        # self.eval_model = models_mae.__dict__[self.eval_cfg.model](norm_pix_loss=self.eval_cfg.norm_pix_loss)
         if args.variant.params.pretrained_weights:
             self._load_pretrained_weights(args, self.eval_model)
         self.eval_model.cuda()
@@ -152,6 +157,15 @@ class MAE(BaseArch):
         if self.eval_cfg.output_dir:
             Path(self.eval_cfg.output_dir).mkdir(parents=True, exist_ok=True)
         eval_main(self.eval_cfg, self.eval_model, self.train_one_epoch, self.evaluate)
+
+    def set_kinetics_cfg(self, args):
+        pass
+
+    def set_kinetics_protocol(self, args):
+        pass
+    
+    def start_kinetics_protocol(self):
+        pass
 
 
 def load_function_from_file(path, name):

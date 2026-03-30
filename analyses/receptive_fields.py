@@ -1,7 +1,5 @@
 import argparse
 import math
-import re
-import timm
 from pathlib import Path
 from collections import OrderedDict
 from torch.utils.data import DataLoader
@@ -11,7 +9,7 @@ from spacetorch.receptive_fields.visualize_helper import *
 from spacetorch.datasets import DatasetRegistry
 from spacetorch.configs import get_cfg
 from spacetorch.utils.torch_utils import resolve_sequential_module_from_str
-from spacetorch.variants import get_variant
+from spacetorch.variants import get_variant, SCALE_FACTOR
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -41,21 +39,17 @@ def main():
     variant.set_eval_model(cfg)
     model = variant.eval_model
 
-    save_dir = Path(cfg.output_dir)
-    save_path: Path = save_dir / args.layer / f"receptive_field_sizes.csv"
-    save_path.parent.mkdir(parents=True, exist_ok=True)
+    save_dir = Path(cfg.output_dir) / args.layer
+    save_dir.mkdir(parents=True, exist_ok=True)
 
-    is_swinv2 = ("swinv2" in cfg.name)
-
-    if not save_path.exists():
-        with open(save_path, "w") as f:
-            f.write("run,layer,rf_size\n")
-
-    dataset = DatasetRegistry.get("ImageNet" if not is_swinv2 else "ImageNet192x192")
+    dataset = DatasetRegistry.get("ImageNet_Unnormalized")
 
     data_loader: DataLoader = DataLoader(
-        dataset, batch_size=128, shuffle=True, num_workers=1, pin_memory=True
+        dataset, batch_size=64, shuffle=True, num_workers=1, pin_memory=True
     )
+
+    transform = None
+    what = None
 
     hook_dict = OrderedDict()
 
@@ -97,29 +91,29 @@ def main():
         analysis_output = analysis_single_layer(
             model=model,
             layer_name=args.layer,
+            scale_factor=SCALE_FACTOR[cfg.variant.architecture][args.layer],
             data_loader=data_loader,
             hook_dict=hook_dict, 
             max_image_num=1024,
-            device="cuda"
+            device="cuda",
+            gradient="raw",
+            point="center",
+            transform=transform,
+            what=what
         )
 
         handle.remove()
 
-        average_image_dict_average, hook_dict = analysis_output
+        distance_matrix, point_dict = analysis_output
 
-        try:
-            rfs = create_plots(
-                average_image_dict=average_image_dict_average,
-                hook_dict=hook_dict,
-                path=save_dir / args.layer,
-                extra=f"{run}",
-                visualize=True
-            )
-        except:
-            pass
-
-        with open(save_path, "a") as f:
-            f.write(f"{run},{rfs[0]}\n")
+        rfs = create_plots(
+            distance_matrix=distance_matrix,
+            point_dict=point_dict,
+            path=save_dir,
+            extra=f"{run}",
+            visualize=True,
+        )
+        np.savez(save_dir / f"rfs_{run}.npz", **rfs)
 
 
 if __name__ == "__main__":

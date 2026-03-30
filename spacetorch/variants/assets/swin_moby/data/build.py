@@ -19,6 +19,7 @@ from timm.data.transforms import str_to_pil_interp
 
 from .cached_image_folder import CachedImageFolder
 from .custom_image_folder import CustomImageFolder
+from .custom_video_dataset import CustomVideoDataset
 from .samplers import SubsetRandomSampler
 
 
@@ -86,6 +87,11 @@ def build_dataset(is_train, config):
             root = os.path.join(config.DATA.DATA_PATH, prefix)
             dataset = CustomImageFolder(root, transform=transform)
         nb_classes = 1000
+    elif config.DATA.DATASET == 'kinetics400':
+        prefix = 'train' if is_train else 'val'
+        root = os.path.join(config.DATA.DATA_PATH, prefix + ".csv")
+        dataset = CustomVideoDataset(root, transform=transform)
+        nb_classes = 400
     else:
         raise NotImplementedError("We only support ImageNet Now.")
 

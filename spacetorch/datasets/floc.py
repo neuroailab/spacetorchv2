@@ -9,6 +9,7 @@ import torchvision
 from skimage import io
 from torch.utils.data import Dataset
 import xarray as xr
+from einops import reduce, rearrange
 
 from spacetorch.utils.array_utils import flatten, tstat
 
@@ -77,7 +78,7 @@ class fLocData(Dataset):
 
 
 class fLocResponses:
-    def __init__(self, features: np.ndarray, labels: np.ndarray):
+    def __init__(self, features: np.ndarray, labels: np.ndarray, is_llcnn: bool = False, is_lcnn: bool = False):
 
         self.domains = {
             "characters": ["number", "word"],
@@ -90,6 +91,23 @@ class fLocResponses:
         self.categories = [
             category for domain in self.domains.values() for category in domain
         ]
+
+        if is_llcnn:
+            print(features.shape)
+
+            features = rearrange(
+                features,
+                'b (kh kw) h w -> b 1 (h kh) (w kw)',
+                kh=23,
+                kw=23
+            )
+
+            features = rearrange(features, 'b 1 h w -> b (h w)')
+
+            print(features.shape)
+
+        if is_lcnn:
+            features = reduce(features, 'b c h w -> b c', 'mean')
 
         self._data = xr.DataArray(
             data=flatten(features),

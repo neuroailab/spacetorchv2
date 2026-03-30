@@ -122,7 +122,7 @@ def main():
     variant.set_eval_model(cfg)
     model = variant.eval_model
 
-    is_tdann = "tdann" in cfg.name
+    is_tdann = "tdann" in cfg.name and not "tdann_logpolar" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)
 
     save_dir = Path(cfg.output_dir) / args.src_layer
@@ -130,9 +130,9 @@ def main():
 
     is_swinv2 = ("swinv2" in cfg.name)
 
-    if (save_dir / "wiring_length.csv").exists():
-        print(f"Found existing results in {save_dir}, skipping...")
-        return
+    # if (save_dir / "wiring_length.csv").exists():
+    #     print(f"Found existing results in {save_dir}, skipping...")
+    #     return
 
     if args.is_v1:
         df = process_model_v1(model, positions, args.src_layer, args.target_layer, is_swinv2=is_swinv2)

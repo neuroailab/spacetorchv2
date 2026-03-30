@@ -4,6 +4,7 @@ import glob
 import numpy as np
 import torch
 import torchvision
+from einops import reduce, rearrange
 from skimage import io
 from torch.utils.data import Dataset
 import xarray as xr
@@ -114,8 +115,23 @@ class SineResponses:
         features: np.ndarray,
         labels: np.ndarray,
         normalize_to_ringach_firing_rates: bool = True,
+        is_llcnn: bool = False,
+        is_lcnn: bool = False,
     ):
         self.DVA_PER_IMAGE = DVA_PER_IMAGE
+
+        if is_llcnn:
+            features = rearrange(
+                features,
+                'b (kh kw) h w -> b 1 (h kh) (w kw)',
+                kh=3,
+                kw=3
+            )
+
+            features = rearrange(features, 'b 1 h w -> b (h w)')
+        
+        if is_lcnn:
+            features = reduce(features, 'b c h w -> b c', 'mean')
 
         if normalize_to_ringach_firing_rates:
             # make the medians match, and multiply flat features by that scaling factor

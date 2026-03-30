@@ -99,7 +99,7 @@ def get_placement_configs(
 def create_position_dict(cfg: LayerPlacement) -> Dict[str, Any]:
     positions, rf_radius = place_tokens(
         dims=cfg.dims,
-        pos_lims=(0, cfg.tissue_size),
+        pos_lims=(0, cfg.tissue_size[0], 0, cfg.tissue_size[1]),
         offset_pattern="random",
         rf_overlap=cfg.rf_overlap,
         return_rf_radius=True,

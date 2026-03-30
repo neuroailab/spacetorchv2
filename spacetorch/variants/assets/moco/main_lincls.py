@@ -177,6 +177,9 @@ def main_worker(gpu, ngpus_per_node, args):
                 if k.startswith('module.model.base_encoder') and not k.startswith('module.model.base_encoder.%s' % linear_keyword):
                     # remove prefix
                     state_dict[k[len("module.model.base_encoder."):]] = state_dict[k]
+                if k.startswith('module.base_encoder') and not k.startswith('module.base_encoder.%s' % linear_keyword):
+                    # remove prefix
+                    state_dict[k[len("module.base_encoder."):]] = state_dict[k]
                 # delete renamed or unused k
                 del state_dict[k]
 
@@ -319,8 +322,8 @@ def main_worker(gpu, ngpus_per_node, args):
                 'best_acc1': best_acc1,
                 'optimizer' : optimizer.state_dict(),
             }, is_best)
-            if epoch == args.start_epoch:
-                sanity_check(model.state_dict(), args.pretrained, linear_keyword)
+            # if epoch == args.start_epoch:
+            #     sanity_check(model.state_dict(), args.pretrained, linear_keyword)
 
 
 def train(train_loader, model, criterion, optimizer, epoch, args):

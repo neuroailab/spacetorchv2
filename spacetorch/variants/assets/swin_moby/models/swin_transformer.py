@@ -454,8 +454,8 @@ class PatchEmbed(nn.Module):
     def forward(self, x):
         B, C, H, W = x.shape
         # FIXME look at relaxing size constraints
-        assert H == self.img_size[0] and W == self.img_size[1], \
-            f"Input image size ({H}*{W}) doesn't match model ({self.img_size[0]}*{self.img_size[1]})."
+        # assert H == self.img_size[0] and W == self.img_size[1], \
+        #     f"Input image size ({H}*{W}) doesn't match model ({self.img_size[0]}*{self.img_size[1]})."
         x = self.proj(x).flatten(2).transpose(1, 2)  # B Ph*Pw C
         if self.norm is not None:
             x = self.norm(x)
@@ -589,6 +589,72 @@ class SwinTransformer(nn.Module):
         x = self.forward_features(x)
         x = self.head(x)
         return x
+    
+    def get_intermediate_layers(
+        self,
+        x: torch.Tensor,
+        n=1,
+        reshape: bool = False,
+        norm: bool = False,
+        return_class_token: bool = False,
+    ):
+        """
+        Args:
+            x: (B, C, H, W)
+            n: int or list of indices
+            reshape: return BCHW instead of BLC
+            norm: apply final norm
+            return_class_token: return pooled token (Swin has no real CLS)
+        """
+
+        B = x.shape[0]
+
+        # Patch embed
+        x = self.patch_embed(x)
+        if self.ape:
+            x = x + self.absolute_pos_embed
+        x = self.pos_drop(x)
+
+        intermediates = []
+
+        H, W = self.patches_resolution
+
+        for i, layer in enumerate(self.layers):
+            x = layer(x)
+
+            if i < self.num_layers - 1:
+                H = H // 2
+                W = W // 2
+
+            out = self.norm(x) if norm else x
+            intermediates.append((out, H, W))
+
+        total_layers = len(intermediates)
+
+        if isinstance(n, int):
+            layers_to_take = range(total_layers - n, total_layers)
+        else:
+            layers_to_take = n
+
+        outputs = []
+
+        for i in layers_to_take:
+            out, H, W = intermediates[i]
+
+            if reshape:
+                # B L C → B C H W
+                out_spatial = out.view(B, H, W, -1).permute(0, 3, 1, 2).contiguous()
+            else:
+                out_spatial = out
+
+            if return_class_token:
+                # emulate CLS via global average pooling
+                cls_token = out.mean(dim=1)  # B, C
+                outputs.append((out_spatial, cls_token))
+            else:
+                outputs.append(out_spatial)
+
+        return tuple(outputs)
 
     def flops(self):
         flops = 0

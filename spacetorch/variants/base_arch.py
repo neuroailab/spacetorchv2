@@ -23,6 +23,10 @@ class BaseArch(ABC):
         pass
 
     @abstractmethod
+    def set_kinetics_cfg(self, args):
+        pass
+
+    @abstractmethod
     def set_model(self, args):
         pass
 
@@ -39,7 +43,15 @@ class BaseArch(ABC):
         pass
 
     @abstractmethod
+    def set_kinetics_protocol(self, args):
+        pass
+
+    @abstractmethod
     def start_eval_protocol(self):
+        pass
+
+    @abstractmethod
+    def start_kinetics_protocol(self):
         pass
 
     def train_init(self, args):
@@ -50,3 +62,8 @@ class BaseArch(ABC):
         self.set_eval_cfg(args)
         self.set_eval_model(args)
         self.set_eval_protocol(args)
+
+    def kinetics_init(self, args):
+        self.set_kinetics_cfg(args)
+        self.set_eval_model(args)
+        self.set_kinetics_protocol(args)

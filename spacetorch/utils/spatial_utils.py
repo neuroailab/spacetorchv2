@@ -292,8 +292,8 @@ def place_tokens(
         print('\txx:', xx.shape)
         print('\tyy:', yy.shape)
     elif len(pos_lims) == 4:
-        x_rf_centers, x_rf_radius = compute_rf_centers(dims, rf_overlap, pos_lims[:2])
-        y_rf_centers, y_rf_radius = compute_rf_centers(dims, rf_overlap, pos_lims[2:])
+        x_rf_centers, x_rf_radius = compute_rf_centers(dims, rf_overlap, pos_lims[:2], index=-2)
+        y_rf_centers, y_rf_radius = compute_rf_centers(dims, rf_overlap, pos_lims[2:], index=-1)
         xx, yy = np.meshgrid(x_rf_centers, y_rf_centers)
 
         # not sure about this choice, but seems ok for now as long as aspect ratio is
@@ -356,7 +356,7 @@ def jitter_positions(pos: np.ndarray, jitter: float = 0):
     return jittered_squished - np.min(jittered_squished, axis=0) + np.min(pos, axis=0)
 
 
-def compute_rf_centers(layer_dims, rf_overlap, pos_lims):
+def compute_rf_centers(layer_dims, rf_overlap, pos_lims, index=-1):
     """
     For a model layer, returns rf_centers given layer dimensions
         and receptive field overlap
@@ -379,7 +379,7 @@ def compute_rf_centers(layer_dims, rf_overlap, pos_lims):
     """
     assert len(layer_dims) > 1
 
-    num_rfs = layer_dims[-1]
+    num_rfs = layer_dims[index]
     map_width = np.ptp(pos_lims)
 
     rf_width = map_width / (num_rfs - (num_rfs * rf_overlap) + rf_overlap)

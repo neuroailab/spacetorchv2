@@ -241,10 +241,12 @@ class ITMap(TissueMap):
             distance_cutoff: any pairwise distances beyond this point are dropped from
                 the curve
         """
-        rng = default_rng(seed=424)
+        rng = default_rng(seed=100)
         sel = self.responses.selectivity(contrast.on_categories)
         profiles = []
         mean_responses = self.responses._data.mean("image_idx").values
+        if np.min(mean_responses) < 0:
+            mean_responses -= np.min(mean_responses)
         for _ in range(num_samples):
             indices = rng.choice(
                 np.arange(len(self.positions)), size=(sample_size,), replace=False

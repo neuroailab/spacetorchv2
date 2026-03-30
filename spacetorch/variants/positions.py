@@ -8,30 +8,33 @@ import torch
 from spacetorch.types import Dims, VVSRegion
 
 from spacetorch.utils.array_utils import FlatIndices, get_flat_indices
-from spacetorch.constants import RETINA_SIZE, V1_SIZE, V2_SIZE, V4_SIZE, VTC_SIZE
+from spacetorch.constants import RETINA_SIZE, V1_SIZE, V2_SIZE, V3_SIZE, V4_SIZE, VTC_SIZE
 
 
 TISSUE_SIZES: Dict[VVSRegion, float] = {
-    "retina": RETINA_SIZE,
-    "V1": V1_SIZE,
-    "V2": V2_SIZE,
-    "V4": V4_SIZE,
-    "VTC": VTC_SIZE,
+    "retina": (RETINA_SIZE, RETINA_SIZE),
+    "V1": (V1_SIZE, V1_SIZE),
+    "V2": (V2_SIZE, V2_SIZE),
+    "V3": (V3_SIZE, V3_SIZE),
+    "V4": (V4_SIZE, V4_SIZE),
+    "VTC": (VTC_SIZE, VTC_SIZE),
 }
 
 NEIGHBORHOOD_WIDTHS: Dict[VVSRegion, float] = {
     "retina": 0.0475,
     "V1": 1.626,
     "V2": 3.977,
+    "V3": 3.977,
     "V4": 2.545,
     "VTC": 31.818,
 }
 
 # at the the time models were trained, the positions were meant to match closer to estimates in macaque. We scale those initial positions by a fixed amount to make them a closer match to human data
-RESCALE_POSITIONS_TO_HUMANS: Dict[VVSRegion, float] = {
+RESCALE_POSITIONS_TO_HUMANS: Dict[VVSRegion, Tuple[float, float]] = {
     "retina": 0.6,
     "V1": 1.5,
     "V2": 1.75,
+    "V3": 1.75,
     "V4": 1.4,
     "VTC": 7,
 }
@@ -43,6 +46,34 @@ BRAIN_MAPPING = {
         "layer2.0": "V1",
         "layer2.1": "V1",
         "layer3.0": "V2",
+        "layer3.1": "V4",
+        "layer4.0": "VTC",
+        "layer4.1": "VTC",
+    },
+    "resnet50": {
+        "layer1.0": "retina",
+        "layer1.1": "retina",
+        "layer1.2": "retina",
+        "layer2.0": "V1",
+        "layer2.1": "V1",
+        "layer2.2": "V1",
+        "layer2.3": "V2",
+        "layer3.0": "V4",
+        "layer3.1": "V4",
+        "layer3.2": "V4",
+        "layer3.3": "VTC",
+        "layer3.4": "VTC",
+        "layer3.5": "VTC",
+        "layer4.0": "VTC",
+        "layer4.1": "VTC",
+        "layer4.2": "VTC",
+    },
+    "resnet18_logpolar": {
+        "layer1.0": "retina",
+        "layer1.1": "retina",
+        "layer2.0": "V1",
+        "layer2.1": "V2",
+        "layer3.0": "V3",
         "layer3.1": "V4",
         "layer4.0": "VTC",
         "layer4.1": "VTC",
@@ -102,6 +133,50 @@ BRAIN_MAPPING = {
         "blocks.9.attn": "VTC",
         "blocks.10.attn": "VTC",
         "blocks.11.attn": "VTC",
+    },
+    "vitb16_mae": {
+        "blocks.0": "retina",
+        "blocks.1": "V1",
+        "blocks.2": "V1",
+        "blocks.3": "V2",
+        "blocks.4": "V4",
+        "blocks.5": "V4",
+        "blocks.6": "V4",
+        "blocks.7": "V4",
+        "blocks.8": "VTC",
+        "blocks.9": "VTC",
+        "blocks.10": "VTC",
+        "blocks.11": "VTC",
+        "decoder_blocks.0": "VTC",
+        "decoder_blocks.1": "VTC",
+        "decoder_blocks.2": "VTC",
+        "decoder_blocks.3": "V4",
+        "decoder_blocks.4": "V4",
+        "decoder_blocks.5": "V2",
+        "decoder_blocks.6": "V1",
+        "decoder_blocks.7": "V1",
+    },
+    "vitb16a_mae": {
+        "blocks.0.attn": "retina",
+        "blocks.1.attn": "V1",
+        "blocks.2.attn": "V1",
+        "blocks.3.attn": "V2",
+        "blocks.4.attn": "V4",
+        "blocks.5.attn": "V4",
+        "blocks.6.attn": "V4",
+        "blocks.7.attn": "V4",
+        "blocks.8.attn": "VTC",
+        "blocks.9.attn": "VTC",
+        "blocks.10.attn": "VTC",
+        "blocks.11.attn": "VTC",
+        "decoder_blocks.0.attn": "VTC",
+        "decoder_blocks.1.attn": "VTC",
+        "decoder_blocks.2.attn": "VTC",
+        "decoder_blocks.3.attn": "V4",
+        "decoder_blocks.4.attn": "V4",
+        "decoder_blocks.5.attn": "V2",
+        "decoder_blocks.6.attn": "V1",
+        "decoder_blocks.7.attn": "V1",
     },
     "swinv2_base": {
         "layers.0.blocks.0": "retina",

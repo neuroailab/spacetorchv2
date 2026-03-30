@@ -16,14 +16,20 @@ RETINA_SIZE = 2.4  # mm
 #  (sqrt 13.5cm^2 = 36.75mm)
 V1_SIZE = 36.75  # mm
 
+V1_ANISOTROPIC_SIZE = (30.0, 45.0)  # mm
+
 # V2 estimate also from Benson et al, slightly smaller than V1
 V2_SIZE = 35.0  # mm
+
+V3_SIZE = 32.0  # mm
 
 # human V4 estimates are hard to find, but this seems like a reasonable approximation
 V4_SIZE = 22.4  # mm
 
 # this is measured from the average size of the responsive VTC ROI in the NSD
 VTC_SIZE = 70.0  # mm
+
+VTC_ANISOTROPIC_SIZE = (50.0, 90.0)  # mm
 
 # for good luck!
 RNG_SEED = 424

@@ -16,17 +16,25 @@ spatial_loss:
     blocks.9.attn: 0.
     blocks.10.attn: 0.
     blocks.11.attn: 0.
+    decoder_blocks.0.attn: 0.
+    decoder_blocks.1.attn: 0.
+    decoder_blocks.2.attn: 0.
+    decoder_blocks.3.attn: 0.
+    decoder_blocks.4.attn: 0.
+    decoder_blocks.5.attn: 0.
+    decoder_blocks.6.attn: 0.
+    decoder_blocks.7.attn: 0.
   position_dir: checkpoints/vitb16a_mae_imagenet/positions
 swapopt:
   num_steps: 100000000
   steps_per_neighborhood: 500
 variant:
   name: mae
-  architecture: vitb16a
+  architecture: vitb16a_mae
   setup:
     train: ../mae/engine_pretrain.py
     model: ../mae/models_mae.py
-    eval_model: ../mae/models_vit.py
+    eval_model: ../mae/models_mae.py
     config: ""
     eval: ../mae/engine_finetune.py
   params:

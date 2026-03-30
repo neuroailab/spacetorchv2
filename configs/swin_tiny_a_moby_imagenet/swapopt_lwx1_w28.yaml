@@ -1,5 +1,5 @@
 name: swin_tiny_a_moby_imagenet_swapopt_lwx1_w28
-output_dir: checkpoints/swin_tiny_a_moby_imagenet_swapopt_lwx1_w28
+output_dir: /data2/ynshah/swin_tiny_a_moby_imagenet_swapopt_lwx1_w28
 wandb: False
 spatial_loss:
   name: 2d_spatial_correlation
