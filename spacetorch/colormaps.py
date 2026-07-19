@@ -7,6 +7,7 @@ than built in HSV.
 
 import matplotlib as mpl
 import numpy as np
+import seaborn as sns
 
 # colormaps for Nauhaus data
 nauhaus_raw_colormaps = {}
@@ -35,6 +36,7 @@ nauhaus_raw_colormaps["sfs"] = np.array(
     ]
 )
 nauhaus_raw_colormaps["colors"] = np.array([(0.8, 0.8, 0.8, 1), (0.1, 0.1, 0.1, 1)])
+nauhaus_raw_colormaps["diameters"] = np.array(sns.color_palette("viridis", n_colors=20))
 
 nauhaus_colormaps = {}
 for colormap_name, raw_colormap in nauhaus_raw_colormaps.items():

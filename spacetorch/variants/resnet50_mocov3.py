@@ -112,7 +112,7 @@ class ResNet50_MoCov3(BaseArch):
         })
 
     def _load_pretrained_weights(self, args, model):
-        checkpoint = torch.load(args.variant.params.pretrained_weights)
+        checkpoint = torch.load(args.variant.params.pretrained_weights, weights_only=False)
         state_dict = checkpoint['state_dict']
         for k in list(state_dict.keys()):
             # retain only base_encoder up to before the embedding layer

@@ -49,8 +49,6 @@ def main():
     is_tdann = "tdann" in cfg.name and not "tdann_logpolar" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
-    is_swinv2 = ("swinv2" in cfg.name)
-
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
@@ -64,7 +62,6 @@ def main():
         positions,
         layer=args.layer,
         output_dir=save_dir,
-        is_swinv2=is_swinv2
     )
 
     rsm = get_model_rsm(floc_tissue, is_itn=False)
@@ -111,8 +108,4 @@ def main():
 
 
 if __name__ == "__main__":
-    """
-    Example usage:
-    python3 visualize/vtc_rsm.py --config configs/analysis_configs/vitb14_dinov2_imagenet_unoptimized.yaml --layer blocks.10
-    """
     main()

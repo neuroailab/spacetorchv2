@@ -1,0 +1,23 @@
+name: alexnet_deepcluster_imagenet
+output_dir: checkpoints/alexnet_deepcluster_imagenet
+wandb: False
+spatial_loss:
+  name: 2d_spatial_correlation
+  spatial_weight:
+    features.2: 0.
+    features.6: 0.
+    features.10: 0.
+    features.13: 0.
+    features.16: 0.
+  position_dir: checkpoints/alexnet_deepcluster_imagenet/positions/
+swapopt:
+  num_steps: 100000000
+  steps_per_neighborhood: 500
+variant:
+  name: alexnet_deepcluster
+  architecture: alexnet_deepcluster
+  params:
+    config: alexnet_deepcluster_config.yaml
+    pretrained_weights: checkpoints/alexnet_deepcluster_imagenet/alexnet_deepcluster_imagenet.pth.tar
+    resume_path: ""
+    dataset_path: /data2/ynshah/imagenet

@@ -78,8 +78,6 @@ def main():
     is_tdann = "tdann" in cfg.name and not "tdann_logpolar" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
-    is_swinv2 = ("swinv2" in cfg.name)
-
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
@@ -93,7 +91,6 @@ def main():
         positions,
         layer=args.layer,
         output_dir=save_dir,
-        is_swinv2=is_swinv2
     )
 
     fig, axs = plt.subplots(figsize=(8, 2.2), nrows=2, ncols=5, gridspec_kw={"wspace": 0.5})
@@ -171,8 +168,4 @@ def main():
 
 
 if __name__ == "__main__":
-    """
-    Example usage:
-    python3 visualize/vtc_selectivity_activation.py --config configs/analysis_configs/vitb14_dinov2_imagenet_unoptimized.yaml --layer blocks.10
-    """
     main()

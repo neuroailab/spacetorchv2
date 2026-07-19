@@ -14,4 +14,6 @@ FLOC_DIR = DS_DIR / "fLoc_stimuli"
 IMAGENET_DIR = Path("/data2/ynshah/imagenet")
 DEFAULT_IMAGENET_TRAIN_DIR = IMAGENET_DIR / "train"
 DEFAULT_IMAGENET_VAL_DIR = IMAGENET_DIR / "val"
+DEFAULT_DISCRIMINATION_TRAIN_DIR = DS_DIR / "discrimination" / "train"
+DEFAULT_DISCRIMINATION_VAL_DIR = DS_DIR / "discrimination" / "val"
 RWAVE_CONTAINER_PATH = DS_DIR / "rwave_python_images"

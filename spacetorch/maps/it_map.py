@@ -169,11 +169,11 @@ class ITMap(TissueMap):
         selectivity_fn: Callable[
             [np.ndarray, np.ndarray], np.ndarray
         ] = array_utils.tstat,
-        t: int = 95,
+        t: int = 2,
         contrasts: Optional[List[Contrast]] = None,
         grayout=False,
         background_alpha: float = 0.1,
-        foreground_alpha: float = 0.9,
+        foreground_alpha: float = 0.8,
         size_mult: float = 0.1,
         scale_points: bool = True,
         marker="s",
@@ -206,8 +206,7 @@ class ITMap(TissueMap):
                 contrast.on_categories, selectivity_fn=selectivity_fn
             )[self.unit_mask]
 
-            threshold = np.percentile(sel, t)
-            selective_indices = sel > threshold
+            selective_indices = sel > t
 
             sizes = self.point_size_multiplier
             if scale_points:
@@ -251,7 +250,7 @@ class ITMap(TissueMap):
             indices = rng.choice(
                 np.arange(len(self.positions)), size=(sample_size,), replace=False
             )
-            indices = indices[mean_responses[indices] > 0.5]
+            indices = indices[mean_responses[indices] > 0.5 * np.max(mean_responses)]
 
             subset_sel = sel[indices]
             subset_sel_expanded = subset_sel[:, np.newaxis]

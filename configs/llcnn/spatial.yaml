@@ -1,5 +1,5 @@
 name: llcnn
-output_dir: checkpoints/llcnn
+output_dir: checkpoints/llcnn/spatial
 wandb: False
 spatial_loss:
   name: 2d_spatial_correlation
@@ -23,7 +23,7 @@ spatial_loss:
   position_dir: checkpoints/llcnn/positions
 variant:
   name: llcnn
-  architecture: resnet18
+  architecture: llcnn
   params:
     pretrained_weights: checkpoints/llcnn/resnet18contopo_LLC_car_90.pt
-    dataset_path: ImageNet:split=TRAIN:root=/data/ynshah/imagenet/:extra=/data/ynshah/imagenet/extra
+    dataset_path: ImageNet:split=TRAIN:root=/data2/ynshah/imagenet/:extra=/data2/ynshah/imagenet/extra

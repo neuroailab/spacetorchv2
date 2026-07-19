@@ -77,8 +77,4 @@ def main():
 
 
 if __name__ == "__main__":
-    """
-    Example usage:
-    python3 scripts/response_similarity.py --config configs/analysis_configs/vitb14_dinov2_imagenet_unoptimized.yaml
-    """
     main()

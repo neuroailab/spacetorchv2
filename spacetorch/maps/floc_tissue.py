@@ -15,13 +15,12 @@ def get_floc_responses(
     model,
     layers,
     verbose: bool = True,
-    is_swinv2: bool = False,
     reduce_along_hw: bool = False,
     is_llcnn: bool = False,
     is_lcnn: bool = False,
 ) -> floc.fLocResponses:
-    if is_swinv2:
-        dataset = DatasetRegistry.get("fLoc192x192")
+    if is_llcnn or is_lcnn:
+        dataset = DatasetRegistry.get("fLoc_Unnormalized")
     else:
         dataset = DatasetRegistry.get("fLoc")
     floc_features, _, floc_labels = get_features_from_layer(
@@ -43,7 +42,6 @@ def get_floc_tissue(
     layer: str = "blocks.11",
     skip_cache = False,
     output_dir: str = "checkpoints/",
-    is_swinv2: bool = False,
     reduce_along_hw: bool = False,
     is_llcnn: bool = False,
     is_lcnn: bool = False,
@@ -69,7 +67,7 @@ def get_floc_tissue(
             print(f"Loaded {cache_id} from cache")
         else:
             responses = get_floc_responses(
-                model, [layer], verbose=True, is_swinv2=is_swinv2, reduce_along_hw=reduce_along_hw, is_llcnn=is_llcnn, is_lcnn=is_lcnn, **kwargs
+                model, [layer], verbose=True, reduce_along_hw=reduce_along_hw, is_llcnn=is_llcnn, is_lcnn=is_lcnn, **kwargs
             )
             write_pickle(cache_loc, responses)
 

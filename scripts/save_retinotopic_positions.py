@@ -171,8 +171,4 @@ def main():
 
 
 if __name__ == "__main__":
-    """
-    Example usage:
-    python3 scripts/save_retinotopic_positions.py --config configs/vitb14_dinov2_imagenet.yaml output_dir=checkpoints/vitb14_dinov2_imagenet
-    """
     main()

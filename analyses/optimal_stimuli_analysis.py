@@ -64,8 +64,4 @@ def main():
 
 
 if __name__ == "__main__":
-    """
-    Example usage:
-    python3 spacetorch/scripts/optimal_stimuli_analysis.py --config spacetorch/configs/analysis_configs/tdann.yaml --layer blocks.1
-    """
     main()

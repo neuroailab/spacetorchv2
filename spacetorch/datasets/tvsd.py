@@ -14,6 +14,14 @@ TVSD_TRANSFORMS = torchvision.transforms.Compose(
     ]
 )
 
+TVSD_TRANSFORMS_UNNORMALIZED = torchvision.transforms.Compose(
+    [
+        torchvision.transforms.Resize(224),
+        torchvision.transforms.ToTensor(),
+    ]
+)
+
+
 DUMMY_LABEL = 0
 
 class TVSDImages(torch.utils.data.Dataset):

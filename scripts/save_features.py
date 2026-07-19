@@ -62,8 +62,4 @@ def main():
 
 
 if __name__ == "__main__":
-    """
-    Example usage:
-    python3 scripts/save_features.py --config configs/vitb14_dinov2_imagenet.yaml --dataset_name SineGrating2019 output_dir=checkpoints/vitb14_dinov2_imagenet
-    """
     main()

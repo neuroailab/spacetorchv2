@@ -74,8 +74,4 @@ def main():
 
 
 if __name__ == "__main__":
-    """
-    Example usage:
-    python3 scripts/perform_swapopt.py --config configs/vitb14_dinov2_imagenet.yaml --layer blocks.1 --feature checkpoints/vitb14_dinov2_imagenet/features/SineGrating2019.h5 --dataset_name SineGrating2019
-    """
     main()

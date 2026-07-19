@@ -134,7 +134,7 @@ class KAP2D(nn.Module):
         raise ValueError(f'Pool type {self.pool_type} not recognized.')
       out = self.undo_reshape_x(out, x_shape)
     if self.noise_std > 0.: 
-      out = out + torch.randn(out.size(), device=out.device) * self.noise_std 
+      out = out + torch.randn(out.size(), device=out.device, dtype=out.dtype) * self.noise_std
     return out
 
 
@@ -175,12 +175,12 @@ class GAP2D(KAP2D):
         reshaped_out = reshaped_x
         padding = (self.kernelsize-1)//2
       if self.pool_type == 'gaussian':
-        out = F.conv2d(reshaped_out, self.kernel.to(reshaped_out.device), groups=reshaped_out.shape[1], padding=padding)
+        out = F.conv2d(reshaped_out, self.kernel.to(reshaped_out.dtype).to(reshaped_out.device), groups=reshaped_out.shape[1], padding=padding)
       else: 
         raise ValueError(f'Pool type {self.pool_type} not recognized.')
       out = self.undo_reshape_x(out, x_shape)
     if self.noise_std > 0.: 
-      out = out + torch.randn(out.size(), device=out.device) * self.noise_std 
+      out = out + torch.randn(out.size(), device=out.device, dtype=out.dtype) * self.noise_std
     return out
 
 
@@ -230,7 +230,7 @@ class MAP2D(KAP2D):
       if self.pool_type == 'mexicanhat':
         pad_ = (self.kernelsize-1)//2
         reshaped_out_pad = F.pad(reshaped_out, pad=(pad_,pad_,con_pad,con_pad), mode="reflect")
-        out = F.conv2d(reshaped_out_pad, self.kernel.to(reshaped_out.device), groups=reshaped_out_pad.shape[1])
+        out = F.conv2d(reshaped_out_pad, self.kernel.to(reshaped_out_pad.dtype).to(reshaped_out_pad.device), groups=reshaped_out_pad.shape[1])
         #out = F.conv2d(reshaped_out, self.kernel.to(reshaped_out.device),padding=pad_, groups=reshaped_out.shape[1])
         #print(self.continuous)
         #print(reshaped_out_pad.shape)
@@ -238,7 +238,7 @@ class MAP2D(KAP2D):
         raise ValueError(f'Pool type {self.pool_type} not recognized.')
       out = self.undo_reshape_x(out, x_shape)
     if self.noise_std > 0.: 
-      out = out + torch.randn(out.size(), device=out.device) * self.noise_std 
+      out = out + torch.randn(out.size(), device=out.device, dtype=out.dtype) * self.noise_std
     return out  
 
 
@@ -457,7 +457,7 @@ class PooledConv(nn.Module):
   def forward(self,x): 
     
     if self.continuous:
-       # hi i know this is ridiculous; but if you want to train resnet 18; then this always goes to this continuous branches; so you only should keep this following line of code;;make two branches equivalent...
+        # hi i know this is ridiculous; but if you want to train resnet 18; then this always goes to this continuous branches; so you only should keep this following line of code;;make two branches equivalent...
         #out = self.bn(self.conv(x))
       
       if self.pool_type in ['mexicanhat', 'learnable', 'mean']:
@@ -468,10 +468,11 @@ class PooledConv(nn.Module):
         #out = self.bn(out)
         #out = self.relu(out)
     else: 
-       #out = self.kap(self.bn(self.conv(x)))
+        #out = self.kap(self.bn(self.conv(x)))
+        y = self.conv(x)
+        out = self.bn(y)
        
-      out = self.bn(self.conv(x))
-       
-       #out = self.bn(out)
-       #out = self.relu(out)
+        #out = self.bn(out)
+        #out = self.relu(out)
+    # y = out.to(torch.float16)
     return out

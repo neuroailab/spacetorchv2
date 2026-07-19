@@ -85,8 +85,4 @@ def main():
 
 
 if __name__ == "__main__":
-    """
-    Example usage:
-    python3 visualize/v1_sfs_hist.py --config configs/analysis_configs/vitb14_dinov2_imagenet_unoptimized.yaml --layer blocks.1
-    """
     main()

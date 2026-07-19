@@ -1,5 +1,5 @@
-name: lcnn
-output_dir: checkpoints/lcnn
+name: lcnn_mexicanhat
+output_dir: checkpoints/lcnn/mexicanhat
 wandb: False
 spatial_loss:
   name: 2d_spatial_correlation
@@ -23,7 +23,7 @@ spatial_loss:
   position_dir: checkpoints/lcnn/positions
 variant:
   name: lcnn
-  architecture: resnet18
+  architecture: lcnn
   params:
-    pretrained_weights: checkpoints/lcnn/resnet18contopo_100.pt
-    dataset_path: ImageNet:split=TRAIN:root=/data/ynshah/imagenet/:extra=/data/ynshah/imagenet/extra
+    pretrained_weights: checkpoints/lcnn/mexicanhat_resnet18contopo_12.pt
+    dataset_path: ImageNet:split=TRAIN:root=/data2/ynshah/imagenet/:extra=/data2/ynshah/imagenet/extra

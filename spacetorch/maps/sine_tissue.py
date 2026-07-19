@@ -23,12 +23,11 @@ def get_sine_responses(
     verbose: bool = True,
     normalize_to_ringach_firing_rates: bool = True,
     reduce_along_hw: bool = False,
-    is_swinv2: bool = False,
     is_llcnn: bool = False,
     is_lcnn: bool = False,
 ) -> sine_gratings.SineResponses:
-    if is_swinv2:
-        dataset = DatasetRegistry.get("SineGrating2019_192x192")
+    if is_llcnn or is_lcnn:
+        dataset = DatasetRegistry.get("SineGrating2019_Unnormalized")
     else:
         dataset = DatasetRegistry.get("SineGrating2019")
     sine_features, _, sine_labels = get_features_from_layer(
@@ -79,7 +78,6 @@ def get_sine_tissue(
     output_dir: str = "checkpoints/",
     normalize_to_ringach_firing_rates: bool = True,
     smooth_orientation_tuning_curves: bool = True,
-    is_swinv2: bool = False,
 ):
     # check for cached responses
     cache_id = name
@@ -94,7 +92,6 @@ def get_sine_tissue(
             layers=[layer],
             verbose=True,
             normalize_to_ringach_firing_rates=normalize_to_ringach_firing_rates,
-            is_swinv2=is_swinv2
         )
         # write_pickle(cache_loc, responses)
 

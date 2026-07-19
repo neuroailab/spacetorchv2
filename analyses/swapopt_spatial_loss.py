@@ -56,8 +56,4 @@ def main():
 
 
 if __name__ == "__main__":
-    """
-    Example usage:
-    python3 visualize/swapopt_spatial_loss.py --loss_dir checkpoints/vitb14_dinov2_imagenet/positions/swappedon_SineGrating2019 --layers blocks.1 blocks.2 blocks.3 blocks.4 blocks.5 blocks.6 blocks.7 blocks.8 blocks.9 blocks.10 blocks.11
-    """
     main()

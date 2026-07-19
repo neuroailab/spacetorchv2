@@ -1,0 +1,29 @@
+name: lcnn_gaussian
+output_dir: checkpoints/lcnn/gaussian
+wandb: False
+spatial_loss:
+  name: 2d_spatial_correlation
+  spatial_weight:
+    layer1.0.conv1: 0.
+    layer1.0.conv2: 0.
+    layer1.1.conv1: 0.
+    layer1.1.conv2: 0.
+    layer2.0.conv1: 0.
+    layer2.0.conv2: 0.
+    layer2.1.conv1: 0.
+    layer2.1.conv2: 0.
+    layer3.0.conv1: 0.
+    layer3.0.conv2: 0.
+    layer3.1.conv1: 0.
+    layer3.1.conv2: 0.
+    layer4.0.conv1: 0.
+    layer4.0.conv2: 0.
+    layer4.1.conv1: 0.
+    layer4.1.conv2: 0.
+  position_dir: checkpoints/lcnn/positions
+variant:
+  name: lcnn
+  architecture: lcnn
+  params:
+    pretrained_weights: checkpoints/lcnn/gaussian_resnet18contopo_34.pt
+    dataset_path: ImageNet:split=TRAIN:root=/data2/ynshah/imagenet/:extra=/data2/ynshah/imagenet/extra

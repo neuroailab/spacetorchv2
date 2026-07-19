@@ -220,7 +220,7 @@ def update_numbers_to_global_smallest(input_list):
     return updated_list
 
 
-def analysis_single_layer(model, layer_name, scale_factor, data_loader, hook_dict, max_image_num=None, device="cuda", gradient="raw", point="center", transform=None, what=None):
+def analysis_single_layer(model, layer_name, scale_factor, data_loader, hook_dict, max_image_num=None, device="cuda"):
    
     average_image_dict = OrderedDict()
     point_dict = {
@@ -237,34 +237,16 @@ def analysis_single_layer(model, layer_name, scale_factor, data_loader, hook_dic
 
         input_tensor = images
         input_tensor = input_tensor.to(device)
-        if gradient == "raw":
-            input_tensor.requires_grad = True
-
-        transformed_input = input_tensor
-
-        transformed_input = imagenet_normalize(transformed_input)
-        if gradient == "transformed":
-            transformed_input.requires_grad = True
+        input_tensor.requires_grad = True
 
         central_points_scale = scale_factor
 
-        model(transformed_input)
+        model(input_tensor)
 
         k = layer_name
         v = hook_dict[layer_name]
 
         central_points = find_central_positions_cnn(v, int(central_points_scale))
-
-        # optionally choose points near the periphery
-        if point == "periphery":
-            _, _, H, W = v.shape
-            dh = H // 4
-            dw = W // 4
-            central_points = [
-                (max(0, min(H - 1, h + dh)),
-                max(0, min(W - 1, w + dw)))
-                for h, w in central_points
-            ]
 
         v = v.abs().sum(dim=0)
         v = v.sum(dim=0)
@@ -275,12 +257,8 @@ def analysis_single_layer(model, layer_name, scale_factor, data_loader, hook_dic
 
         specific_value.backward(retain_graph=True)
 
-        if gradient == "raw":
-            input_gradient = input_tensor.grad.abs()
-            input_tensor.grad.zero_()
-        elif gradient == "transformed":
-            input_gradient = transformed_input.grad.abs()
-            transformed_input.grad.zero_()
+        input_gradient = input_tensor.grad.abs()
+        input_tensor.grad.zero_()
 
         key = f'{k}'
 

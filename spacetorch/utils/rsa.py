@@ -43,7 +43,7 @@ def get_model_rsm(
             stack.append(tissue.maps[contrast.name].ravel())
         else:
             stack.append(
-                tissue.responses.selectivity(on_categories=contrast.on_categories)
+                tissue.responses.selectivity(on_categories=contrast.on_categories, off_categories=contrast.off_categories)
             )
 
     stacked = np.stack(stack)

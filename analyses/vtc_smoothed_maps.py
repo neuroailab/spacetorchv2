@@ -31,6 +31,8 @@ For python-based LazyConfig, use "path.key=value".
 
 args = get_parser().parse_args()
 contrasts = DOMAIN_CONTRASTS
+plot_con_order = ["Objects", "Characters", "Places", "Faces", "Bodies"]
+contrast_dict = {c.name: c for c in contrasts}
 
 
 def add_scale_bar(
@@ -74,8 +76,6 @@ def main():
     is_tdann = "tdann" in cfg.name and not "tdann_logpolar" in cfg.name
     positions = get_positions(cfg, rescale=is_tdann)[args.layer]
 
-    is_swinv2 = ("swinv2" in cfg.name)
-
     save_dir = Path(cfg.output_dir) / args.layer
     save_dir.mkdir(parents=True, exist_ok=True)
 
@@ -97,10 +97,29 @@ def main():
         positions,
         layer=args.layer,
         output_dir=save_dir,
-        is_swinv2=is_swinv2
     )
 
     for t in _t:
+        fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(1, 1))
+
+        floc_tissue.make_selectivity_map(
+            ax,
+            marker=".",
+            contrasts=[contrast_dict[n] for n in plot_con_order],
+            size_mult=2e-3,
+            foreground_alpha=0.8,
+            t=t,
+            rasterized=True,
+            linewidths=0,
+        )
+
+        ax.axis("off")
+
+        add_scale_bar(ax, 10, y_start=0)
+            
+        fig.savefig(save_dir / f"vtc_map_t{t}.png", dpi=300, bbox_inches="tight", transparent=True)
+
+
         fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(1, 1))
 
         ax.add_patch(patches.Rectangle((0, 0), height=70, width=70, facecolor="#ddd"))
@@ -127,8 +146,4 @@ def main():
 
 
 if __name__ == "__main__":
-    """
-    Example usage:
-    python3 visualize/vtc_smoothed_maps.py --config configs/analysis_configs/vitb14_dinov2_imagenet_unoptimized.yaml --layer blocks.10
-    """
     main()

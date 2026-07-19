@@ -12,7 +12,7 @@ config:
       DATASET_NAMES:
       - imagenet1k_folder
       DATA_PATHS:
-      - /data/ynshah/imagenet/val
+      - /data2/ynshah/imagenet/val
       DATA_SOURCES:
       - disk_folder
       LABEL_SOURCES:
@@ -39,7 +39,7 @@ config:
       DATASET_NAMES:
       - imagenet1k_folder
       DATA_PATHS:
-      - /data/ynshah/imagenet/train
+      - /data2/ynshah/imagenet/train
       DATA_SOURCES:
       - disk_folder
       LABEL_SOURCES:

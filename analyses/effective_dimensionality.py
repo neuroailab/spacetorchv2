@@ -46,9 +46,10 @@ def main():
     #     print(f"Found existing results in {save_dir}, skipping...")
     #     return
 
-    is_swinv2 = ("swinv2" in cfg.name)
+    is_lcnn = ("lcnn" in cfg.name)
+    is_llcnn = ("llcnn" in cfg.name)
 
-    dataset_name = args.dataset_name or "TVSD"
+    dataset_name = args.dataset_name or ("TVSD_Unnormalized" if (is_lcnn or is_llcnn) else "TVSD")
     dataset = DatasetRegistry.get(dataset_name)
     
     features = get_features_from_layer(

@@ -46,6 +46,7 @@ class BasicBlock(nn.Module):
         identity = x
 
         out = self.conv1(x)
+        # out2 = out.to(torch.float16)
         out = self.bn1(out)
         out = self.relu(out)
 
@@ -203,6 +204,7 @@ class ResNet(nn.Module):
 
     def forward(self, x):
         x = self.conv1(x)
+        # y = x.to(torch.float16)
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)

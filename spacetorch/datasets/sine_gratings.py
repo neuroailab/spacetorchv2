@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, Type, List, Callable, Union
 import glob
+import math
 import numpy as np
 import torch
 import torchvision
@@ -107,6 +108,13 @@ class SineGrating2019(Dataset):
             img = self.transforms(img)
 
         return img, target
+    
+
+def get_closest_factors(num): 
+    num_root = int(math.sqrt(num))
+    while num % num_root != 0: 
+        num_root -= 1
+    return num_root, int(num / num_root) 
 
 
 class SineResponses:
@@ -121,14 +129,18 @@ class SineResponses:
         self.DVA_PER_IMAGE = DVA_PER_IMAGE
 
         if is_llcnn:
-            features = rearrange(
-                features,
-                'b (kh kw) h w -> b 1 (h kh) (w kw)',
-                kh=3,
-                kw=3
-            )
+            f_shape = features.shape
+            kh, kw = get_closest_factors(f_shape[1])
 
-            features = rearrange(features, 'b 1 h w -> b (h w)')
+            features = (torch.from_numpy(features)
+                .permute(0, 2, 3, 1)
+                .reshape(f_shape[0], f_shape[2], f_shape[3], kh, kw)
+                .permute(0, 1, 3, 2, 4)
+                .reshape(f_shape[0], f_shape[2]*kh, f_shape[3]*kw)
+                .numpy())
+
+            # flatten spatial dims
+            features = rearrange(features, 'b h w -> b (h w)')
         
         if is_lcnn:
             features = reduce(features, 'b c h w -> b c', 'mean')

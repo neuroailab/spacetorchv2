@@ -31,7 +31,7 @@ variant:
     eval: ""
   params:
     config: ../Transformer-SSL/configs/moby_swin_tiny.yaml
-    pretrained_weights: checkpoints/swin_tiny_a_moby_imagenet_swapopt_lwx1/swin_tiny_a_moby_imagenet_swapopt_lwx10.pth
+    pretrained_weights: checkpoints/swin_tiny_a_moby_imagenet_swapopt_lwx10/swin_tiny_a_moby_imagenet_swapopt_lwx10.pth
     resume_path: ""
     dataset_path: /data/ynshah/imagenet
     seed: 0

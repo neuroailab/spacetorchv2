@@ -109,7 +109,7 @@ class ResNet50_DINO(BaseArch):
         })
 
     def _load_pretrained_weights(self, args, model):
-        state_dict = torch.load(args.variant.params.pretrained_weights, map_location="cpu")
+        state_dict = torch.load(args.variant.params.pretrained_weights, map_location="cpu", weights_only=False)
         if "teacher" in state_dict:
             state_dict = state_dict["teacher"]
         state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}

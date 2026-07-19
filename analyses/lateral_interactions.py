@@ -197,11 +197,10 @@ def main():
     model = variant.eval_model
     positions = get_positions(cfg, rescale=False)
 
-    is_swinv2 = ("swinv2" in cfg.name)
     is_attn = (cfg.variant.architecture[-1] == "a")
     is_swin = ("swin" in cfg.name)
 
-    dataset = DatasetRegistry.get("ImageNet" if not is_swinv2 else "ImageNet192x192")
+    dataset = DatasetRegistry.get("ImageNet")
 
     attn = get_features_from_layer(
         model=model,

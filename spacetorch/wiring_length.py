@@ -115,14 +115,16 @@ class WireLengthExperiment:
         source_layer: str,
         target_layer: str,
         num_patterns: int,
-        is_swinv2: bool = False
+        is_lcnn: bool = False,
+        is_llcnn: bool = False,
     ):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = model.to(self.device)
         self.layer_positions = layer_positions
         self.source_layer = source_layer
         self.target_layer = target_layer
-        self.is_swinv2 = is_swinv2
+        self.is_lcnn = is_lcnn
+        self.is_llcnn = is_llcnn
 
         try:
             self.source_positions = self.layer_positions[self.source_layer].coordinates
@@ -142,7 +144,7 @@ class WireLengthExperiment:
 
         features, inputs, _labels = get_features_from_layer(
             self.model,
-            DatasetRegistry.get("ImageNet" if not self.is_swinv2 else "ImageNet192x192"),
+            DatasetRegistry.get("ImageNet_Unnormalized" if (self.is_lcnn or self.is_llcnn) else "ImageNet"),
             layers,
             batch_size=batch_size,
             max_batches=num_batches,

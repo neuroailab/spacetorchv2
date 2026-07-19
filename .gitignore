@@ -1,5 +1,5 @@
 # data and checkpoints
-datasets/
+/datasets/
 checkpoints/
 
 # W and B logs
@@ -23,3 +23,5 @@ runs/
 *.pth.tar
 *.npy
 train_config.yaml
+
+paper/

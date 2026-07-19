@@ -13,6 +13,7 @@ import datetime
 import numpy as np
 
 import torch
+import torch.nn as nn
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
 
@@ -41,18 +42,77 @@ def main_loop(config, model, logger):
     if not model:
         model = build_model(config)
 
-        # fix parameters except head
+    if hasattr(model, 'head'):
+        # ViT-style, already has a head
         for name, p in model.named_parameters():
             if 'head' not in name:
                 p.requires_grad = False
-    
-    else:
-        model.fc = torch.nn.Linear(model.fc.in_features, 400)
 
-        # fix parameters except head
+    elif hasattr(model, 'fc'):
+        # ResNet-style
+        model.fc = torch.nn.Linear(model.fc.in_features, 400)
         for name, p in model.named_parameters():
             if 'fc' not in name:
                 p.requires_grad = False
+
+    elif hasattr(model, 'top_layer'):
+        # DeepCluster AlexNet — has features, classifier, top_layer
+        # classifier outputs 4096, attach head on top of that
+        head = torch.nn.Linear(4096, 400)
+
+        class DeepClusterAlexNetWithHead(nn.Module):
+            def __init__(self, backbone, head):
+                super().__init__()
+                self.backbone = backbone
+                self.head = head
+
+            def forward(self, x):
+                if self.backbone.sobel:
+                    x = self.backbone.sobel(x)
+                x = self.backbone.features(x)
+                x = x.view(x.size(0), 256 * 6 * 6)
+                x = self.backbone.classifier(x)
+                return self.head(x)
+
+        model = DeepClusterAlexNetWithHead(model, head)
+        for name, p in model.named_parameters():
+            if 'head' not in name:
+                p.requires_grad = False
+
+    elif hasattr(model, 'all_feat_names'):
+        # AlexNet variants — distinguish by whether fc_block exists
+        if 'fc_block' in model.all_feat_names:
+            # RotNet AlexNet — has fc_block outputting 4096
+            feat_dim = 4096
+            feat_key = 'fc_block'
+        else:
+            # BvlcAlexNet — ends at flatten, 6*6*256 = 9216 for standard
+            # or 6400 depending on input size
+            feat_dim = 6400
+            feat_key = 'flatten'
+
+        head = torch.nn.Linear(feat_dim, 400)
+
+        class AlexNetWithHead(nn.Module):
+            def __init__(self, backbone, head, feat_key):
+                super().__init__()
+                self.backbone = backbone
+                self.head = head
+                self.feat_key = feat_key
+
+            def forward(self, x):
+                feats = self.backbone(x, out_feat_keys=[self.feat_key])
+                # get_trunk_forward_outputs returns a list, index into it
+                feat = feats[0] if isinstance(feats, list) else feats
+                return self.head(feat)
+
+        model = AlexNetWithHead(model, head, feat_key)
+        for name, p in model.named_parameters():
+            if 'head' not in name:
+                p.requires_grad = False
+
+    else:
+        raise ValueError(f'Unknown model architecture: {type(model)}')
 
     model.cuda()
     logger.info(str(model))

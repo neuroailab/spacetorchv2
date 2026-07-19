@@ -96,10 +96,6 @@ def main():
             hook_dict=hook_dict, 
             max_image_num=1024,
             device="cuda",
-            gradient="raw",
-            point="center",
-            transform=transform,
-            what=what
         )
 
         handle.remove()

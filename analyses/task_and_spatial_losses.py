@@ -65,8 +65,4 @@ def main():
 
 
 if __name__ == "__main__":
-    """
-    Example usage:
-    python3 visualize/task_and_spatial_losses.py --task_loss_file checkpoints/vitb14_dinov2_imagenet_noswapopt_lwx1/training_metrics.json --task_loss_file checkpoints/vitb14_dinov2_imagenet_noswapopt/spatial_losses.json positions --swapopt_positions_dir --output_dir=checkpoints/vitb14_dinov2_imagenet_noswapopt_lwx1
-    """
     main()

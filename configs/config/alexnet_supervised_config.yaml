@@ -1,0 +1,149 @@
+# @package _global_
+config:
+  CHECKPOINT:
+    AUTO_RESUME: true
+    CHECKPOINT_FREQUENCY: 10
+    DIR: checkpoints/
+  DATA:
+    NUM_DATALOADER_WORKERS: 4
+    TRAIN:
+      BATCHSIZE_PER_REPLICA: 32
+      DATASET_NAMES:
+      - imagenet1k_folder
+      DATA_PATHS:
+      - /data/ynshah/imagenet/train
+      DATA_SOURCES:
+      - disk_folder
+      LABEL_SOURCES:
+      - disk_folder
+      LABEL_TYPE: standard
+      TRANSFORMS:
+      - name: RandomResizedCrop
+        size: 224
+      - name: RandomHorizontalFlip
+      - brightness: 0.4
+        contrast: 0.4
+        hue: 0.4
+        name: ColorJitter
+        saturation: 0.4
+      - name: ToTensor
+      - mean:
+        - 0.485
+        - 0.456
+        - 0.406
+        name: Normalize
+        std:
+        - 0.229
+        - 0.224
+        - 0.225
+    TEST:
+      BATCHSIZE_PER_REPLICA: 32
+      DATASET_NAMES:
+      - imagenet1k_folder
+      DATA_PATHS:
+      - /data/ynshah/imagenet/val
+      DATA_SOURCES:
+      - disk_folder
+      LABEL_SOURCES:
+      - disk_folder
+      TRANSFORMS:
+      - name: Resize
+        size: 256
+      - name: CenterCrop
+        size: 224
+      - name: ToTensor
+      - mean:
+        - 0.485
+        - 0.456
+        - 0.406
+        name: Normalize
+        std:
+        - 0.229
+        - 0.224
+        - 0.225
+  DISTRIBUTED:
+    BACKEND: nccl
+    NUM_NODES: 1
+    NUM_PROC_PER_NODE: 8
+    RUN_ID: auto
+  LOG_FREQUENCY: 500
+  LOSS:
+    cross_entropy_spatial_correlation_loss:
+      ignore_index: -1
+      layer_weights:
+        _feature_blocks.0.1: 0
+        _feature_blocks.2.1: 0
+        _feature_blocks.4.1: 0
+        _feature_blocks.5.1: 0
+        _feature_blocks.6.1: 0
+      neighborhoods_per_batch: 1
+      temperature: 1.0
+      use_old_version: false
+    name: cross_entropy_spatial_correlation_loss
+  MACHINE:
+    DEVICE: gpu
+  METERS:
+    name: accuracy_list_meter
+    accuracy_list_meter:
+      num_meters: 1
+      topk_values:
+      - 1
+      - 5
+  MODEL:
+    TRUNK:
+      NAME: spatial_alexnet_bvlc
+      TRUNK_PARAMS:
+        position_dir: ""
+        layer_weights:
+          _feature_blocks.0.1: 0
+          _feature_blocks.2.1: 0
+          _feature_blocks.4.1: 0
+          _feature_blocks.5.1: 0
+          _feature_blocks.6.1: 0
+    HEAD:
+      PARAMS:
+      - - mlp
+        - dims:
+          - 6400
+          - 4096
+          - 4096
+          - 1000
+          use_relu: true
+          use_dropout: true
+  MULTI_PROCESSING_METHOD: forkserver
+  OPTIMIZER:
+    momentum: 0.9
+    name: sgd
+    nesterov: false
+    num_epochs: 90
+    param_schedulers:
+      lr:
+        auto_lr_scaling:
+          auto_scale: true
+          base_lr_batch_size: 256
+          base_value: 0.01
+        milestones:
+        - 22
+        - 45
+        - 67
+        name: multistep
+        update_interval: epoch
+        values:
+        - 0.01
+        - 0.001
+        - 0.0001
+        - 1.0e-05
+    regularize_bias: true
+    regularize_bn: false
+    use_larc: false
+    weight_decay: 5e-04
+  SEED_VALUE: 0
+  HOOKS:
+    TENSORBOARD_SETUP:
+      USE_TENSORBOARD: true
+  TEST_EVERY_NUM_EPOCH: 5
+  TEST_MODEL: true
+  TEST_ONLY: false
+  TRAINER:
+    TRAIN_STEP_NAME: custom_train_step
+  VERBOSE: true

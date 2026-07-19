@@ -20,5 +20,5 @@ variant:
   name: tdann
   architecture: resnet18
   params:
-    pretrained_weights: checkpoints/tdann/spatial/model_final_checkpoint_phase199_seed1.torch
+    pretrained_weights: /ccn2/u/ynshah/retinospace/checkpoints/resnet18_simclr_imagenet_swapopt_lwx1_seed1/model_final_checkpoint_phase199.torch
     dataset_path: ImageNet:split=TRAIN:root=/data/ynshah/imagenet/:extra=/data/ynshah/imagenet/extra

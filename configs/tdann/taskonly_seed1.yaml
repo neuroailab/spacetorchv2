@@ -1,5 +1,5 @@
 name: tdann
-output_dir: checkpoints/tdann/
+output_dir: checkpoints/tdann/task_only_seed1/
 wandb: False
 spatial_loss:
   name: 2d_spatial_correlation
@@ -20,6 +20,6 @@ variant:
   name: tdann
   architecture: resnet18
   params:
-    pretrained_weights: checkpoints/tdann/pretrained/model_final_checkpoint_phase199.torch
+    pretrained_weights: /ccn2/u/ynshah/retinospace/checkpoints/resnet18_simclr_imagenet_seed1/model_final_checkpoint_phase199.torch
     dataset_path: ImageNet:split=TRAIN:root=/data/ynshah/imagenet/:extra=/data/ynshah/imagenet/extra
     config: tdann_taskonly_config.yaml
