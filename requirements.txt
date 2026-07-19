@@ -14,3 +14,10 @@ shapely
 torch-lucent
 tqdm
 xarray
+einops
+timm
+wandb
+opencv-python
+seaborn
+decord
+av
