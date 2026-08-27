@@ -11,8 +11,9 @@ def get_expanding_sine_responses(
     reduce_along_hw: bool = False,
     is_llcnn: bool = False,
     is_lcnn: bool = False,
+    contrast: str = "high",
 ) -> ExpandingSineResponses:
-    dataset = DatasetRegistry.get("ExpandingSineGrating2019")
+    dataset = DatasetRegistry.get("ExpandingSineGrating2019" if contrast == "high" else "ExpandingSineGratingLC2026")
     sine_features, _, sine_labels = get_features_from_layer(
         model,
         dataset,

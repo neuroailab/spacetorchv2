@@ -175,6 +175,9 @@ class ExpandingSineGrating2019(Dataset):
         img_idx, diam = self.index_map[idx]
         img = io.imread(self.file_list[img_idx])  # (H, W, C) uint8
 
+        if img.ndim == 2:
+            img = np.stack([img, img, img], axis=-1)
+
         # apply aperture mask before any transforms
         img = apply_aperture_mask_np(img, diam, self.pixels_per_deg, self.gray_value)
 
@@ -352,7 +355,7 @@ class ExpandingSineResponses:
 
         return curves, os_indices, pref_angles, unique_diams
 
-    def get_hsrf_sizes(self, architecture: str, layer: str) -> np.ndarray:
+    def get_rf_sizes(self, architecture: str, layer: str) -> np.ndarray:
         """
         Returns the aperture diameter at peak response for each unit.
         """
@@ -364,17 +367,20 @@ class ExpandingSineResponses:
             curve = curves[:, u]
 
             local_peaks, = argrelmax(curve, order=1)
-
-            # filter out diameter=0 (index 0 is blank baseline)
             local_peaks = local_peaks[local_peaks > 0]
 
-            if len(local_peaks) == 0:
-                # no local peak found — fall back to global peak
+            if len(local_peaks) > 0:
+                peak_diams[u] = EXPANDING_DIAMETERS[local_peaks[0]]
+            else:
+                # no local peak -> response asymptoted without declining; use the SMALLEST diameter reaching 95% of
+                # the eventual peak
                 global_idx = curve.argmax()
                 if global_idx > 0:
-                    peak_diams[u] = unique_diams[global_idx]
-            else:
-                peak_diams[u] = unique_diams[local_peaks[0]]
+                    peak_value = curve[global_idx]
+                    threshold = 0.95 * peak_value
+                    above_thresh = np.where(curve[1:] >= threshold)[0] + 1  # skip idx 0
+                    if len(above_thresh) > 0:
+                        peak_diams[u] = EXPANDING_DIAMETERS[above_thresh[0]]
 
         return peak_diams[~np.isnan(peak_diams)]
 
@@ -392,27 +398,24 @@ class ExpandingSineResponses:
         peak_response = curves.max(axis=0)
         n_units = curves.shape[1]
 
+        asymptote_diameters = np.full(n_units, np.nan)
         asymptote_diameters = []
 
         for u in range(n_units):
             p_idx = peak_idx[u]
             p_resp = peak_response[u]
-
-            if p_resp <= 0 or p_idx == 0 or p_idx == len(unique_diams) - 1:
-                continue
-
+    
             post_peak_curve = curves[p_idx:, u]
-            post_peak_diams = unique_diams[p_idx:]
+            post_peak_diams = EXPANDING_DIAMETERS[p_idx:]
             final_value = post_peak_curve[-1]
-
-            found = False
-            for i in range(0, len(post_peak_curve)):
-                if np.abs(post_peak_curve[i] - final_value) <= threshold * p_resp:
-                    asymptote_diameters.append(post_peak_diams[i])
-                    found = True
+    
+            for i in range(len(post_peak_curve)):
+                remaining = post_peak_curve[i:]
+                if np.all(np.abs(remaining - final_value) <= threshold * p_resp):
+                    asymptote_diameters[u] = post_peak_diams[i]
                     break
 
-        return np.array(asymptote_diameters)
+        return asymptote_diameters[~np.isnan(asymptote_diameters)]
 
     def get_peak_heights(self, metric: str = "angles"):
         tuning_curve = self._data.groupby(metric).mean()

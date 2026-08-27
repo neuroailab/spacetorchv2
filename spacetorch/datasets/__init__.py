@@ -1,4 +1,4 @@
-from .imagenet import ImageNetData, IMAGENET_TRANSFORMS, IMAGENET_TRANSFORMS_UNNORMALIZED, IMAGENET_TRANSFORMS_192X192
+from .imagenet import ImageNetData, IMAGENET_TRANSFORMS, IMAGENET_TRANSFORMS_UNNORMALIZED
 from .sine_gratings import SineGrating2019
 from .expanding_sine_gratings import ExpandingSineGrating2019
 from .tiled_sine_gratings import TiledSineGrating2019
@@ -44,6 +44,10 @@ _DATASETS = {
     "ExpandingSineGrating2019": (
         ExpandingSineGrating2019,
         (paths.SINE_GRATING_2019_DIR, DEFAULT_TRANSFORMS_UNNORMALIZED),
+    ),
+    "ExpandingSineGratingLC2026": (
+        ExpandingSineGrating2019,
+        (paths.SINE_GRATING_LC_2026_DIR, DEFAULT_TRANSFORMS_UNNORMALIZED),
     ),
     "TiledSineGrating2019": (
         TiledSineGrating2019,

@@ -62,6 +62,23 @@ class Smoother:
         }
         return lookup[agg_mode](*args, **kwargs)  # type: ignore
 
+    def _compute_grid(self, positions: np.ndarray):
+        """
+        Computes the window-grid geometry from `positions`. Factored out of
+        __call__ so the exact same geometry can be reused to map other points
+        (e.g., bouton/contacted-site locations) onto the same pixel grid.
+        """
+        minx, miny = np.min(positions, axis=0)
+        maxx, maxy = np.max(positions, axis=0)
+
+        num_x = int(math.floor((maxx - self.kernel_params.width) / self.kernel_params.stride))
+        num_y = int(math.floor((maxy - self.kernel_params.width) / self.kernel_params.stride))
+
+        x_bin_starts = np.linspace(minx, maxx - self.kernel_params.width, num_x)
+        y_bin_starts = np.linspace(miny, maxy - self.kernel_params.width, num_y)
+
+        return num_x, num_y, x_bin_starts, y_bin_starts
+
     def __call__(
         self,
         tissue_map: TissueMap,
@@ -77,20 +94,7 @@ class Smoother:
             positions
         ), "the number of positions and points to aggregate do not match"
 
-        # get windows to compute aggregations within
-        minx, miny = np.min(positions, axis=0)
-        maxx, maxy = np.max(positions, axis=0)
-
-        num_x = int(
-            math.floor((maxx - self.kernel_params.width) / self.kernel_params.stride)
-        )
-
-        num_y = int(
-            math.floor((maxy - self.kernel_params.width) / self.kernel_params.stride)
-        )
-
-        x_bin_starts = np.linspace(minx, maxx - self.kernel_params.width, num_x)
-        y_bin_starts = np.linspace(miny, maxy - self.kernel_params.width, num_y)
+        num_x, num_y, x_bin_starts, y_bin_starts = self._compute_grid(positions)
 
         windows = []
         for x_start in tqdm(x_bin_starts, desc="rows", disable=not self.verbose):
@@ -112,3 +116,32 @@ class Smoother:
         ]
 
         return np.fliplr(np.reshape(agg_per_window, (num_x, num_y))).T
+
+    def positions_to_pixel_coords(
+        self, points: np.ndarray, reference_positions: np.ndarray
+    ):
+        """
+        Maps arbitrary (x, y) points (same mm coordinate system as
+        `reference_positions`) onto pixel coordinates matching the smoothed
+        map returned by __call__ when built from `reference_positions`.
+
+        Returns (px, py) suitable for direct use in ax.scatter(px, py) on the
+        same axes as ax.imshow(smoothed_map) -- no further flipping needed.
+        """
+        num_x, num_y, x_bin_starts, y_bin_starts = self._compute_grid(reference_positions)
+
+        centers_x = x_bin_starts + self.kernel_params.width / 2
+        centers_y = y_bin_starts + self.kernel_params.width / 2
+
+        # continuous index into the pre-flip/transpose grid
+        col_idx = np.interp(points[:, 0], centers_x, np.arange(num_x))
+        row_idx = np.interp(points[:, 1], centers_y, np.arange(num_y))
+
+        # __call__ applies np.fliplr(...).T to the (num_x, num_y) grid:
+        #   fliplr reverses the y-axis (columns), then .T swaps rows<->cols.
+        # Working through the index algebra: final pixel column == original
+        # x-index, and final pixel row == (num_y - 1) - original y-index.
+        px = col_idx
+        py = (num_y - 1) - row_idx
+
+        return px, py

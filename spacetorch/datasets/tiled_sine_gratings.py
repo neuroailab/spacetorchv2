@@ -3,6 +3,7 @@ import math
 import numpy as np
 import torch
 import torchvision
+from scipy import ndimage
 from einops import reduce, rearrange
 from torch.utils.data import Dataset
 import xarray as xr
@@ -195,6 +196,7 @@ class TiledSineResponses:
                 .reshape(f_shape[0], f_shape[2]*kh, f_shape[3]*kw)
                 .numpy())
             features = rearrange(features, 'b h w -> b (h w)')
+            print(features.shape)
 
         if is_lcnn:
             features = reduce(features, 'b c h w -> b c', 'mean')
@@ -238,18 +240,10 @@ class TiledSineResponses:
             return np.array([27, 28, 36, 37])
 
         if architecture == "llcnn":
-            kh, kw = get_closest_factors(C)
-
-            tiled_H = H * kh
-            tiled_W = W * kw
-
-            center_h = tiled_H // 2
-            center_w = tiled_W // 2
-
-            center_idx = center_h * tiled_W + center_w
+            center_idx = 84 * 168 + 84
 
             offsets = np.array([
-                dh * tiled_W + dw
+                dh * 168 + dw
                 for dh in [-2, -1, 0, 1, 2]
                 for dw in [-2, -1, 0, 1, 2]
             ])
@@ -284,7 +278,7 @@ class TiledSineResponses:
         maps = sums / counts[:, :, None]
         return maps.transpose(2, 0, 1)
 
-    def get_crf_sizes_deg(self, noise_threshold=0.2, center_pos=(16, 16)) -> np.ndarray:
+    def get_crf_sizes_deg(self, noise_threshold=0.05, center_pos=(16, 16)) -> np.ndarray:
         """
         Estimates CRF diameter in degrees for each central unit.
         Counts positions where energy >= threshold * peak energy,
@@ -295,20 +289,26 @@ class TiledSineResponses:
 
         unique_cx = np.unique(self._data.cx.values)
         spacing_deg = (unique_cx[1] - unique_cx[0]) / self.pixels_per_deg
+        n_units = maps.shape[0]
+        crf_diameters = np.full(n_units, np.nan)
 
-        crf_diameters = []
         for u in range(len(self.unit_indices)):
             m = maps[u].copy()
 
-            # zero out noise floor
-            m[m < noise_threshold * m.max()] = 0.0
+            thresh = noise_threshold * m.max()
+            binary = m > thresh
 
-            # skip units with no response at the center position
-            if m[center_pos[0], center_pos[1]] == 0:
+            if not binary[center_pos[0], center_pos[1]]:
                 continue
 
-            n_above = (m > 0).sum()
-            area_deg2 = n_above * spacing_deg ** 2
-            crf_diameters.append(2 * np.sqrt(area_deg2 / np.pi))
+            # keep only the contiguous suprathreshold region containing the center position
+            labeled, _ = ndimage.label(binary)
+            center_label = labeled[center_pos[0], center_pos[1]]
+            region_mask = labeled == center_label
 
-        return crf_diameters
+            n_above = region_mask.sum()
+            area_deg2 = n_above * spacing_deg ** 2
+            crf_diameters[u] = 2 * np.sqrt(area_deg2 / np.pi)
+
+        return crf_diameters[~np.isnan(crf_diameters)]
+

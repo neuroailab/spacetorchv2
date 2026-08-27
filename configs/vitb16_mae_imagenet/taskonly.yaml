@@ -39,7 +39,6 @@ variant:
     eval: ../mae/engine_finetune.py
   params:
     config: ""
-    pretrained_weights: checkpoints/vitb16_mae_imagenet/eval/checkpoint-60.pth
-    # pretrained_weights: checkpoints/vitb16_mae_imagenet/vitb16_mae_imagenet.pth
+    pretrained_weights: checkpoints/vitb16_mae_imagenet/vitb16_mae_imagenet.pth
     resume_path: ""
     dataset_path: /data/ynshah/imagenet/

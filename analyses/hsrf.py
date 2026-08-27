@@ -53,7 +53,7 @@ def main():
     # get distribution of curves
     curves, _, _, unique_diams = responses.get_response_at_diameter(architecture=cfg.variant.architecture, layer=args.layer)
 
-    np.save(save_dir / "ecrf_curves.npy", curves)
+    np.save(save_dir / "hsrf_curves.npy", curves)
 
     plt.figure()
     for i in range(len(curves[0])):
@@ -61,30 +61,7 @@ def main():
     sns.lineplot(x=unique_diams, y=curves.mean(axis=1), c="k", linewidth=2)
     plt.xlabel("Stimulus Diameter " r"($^\circ$)")
     plt.ylabel("Response Amplitude (a.u.)")
-    plt.savefig(save_dir / "ecrf_curves.png", dpi=300, bbox_inches='tight')
-
-    # get crf sizes
-    crf_sizes = responses.get_hsrf_sizes(architecture=cfg.variant.architecture, layer=args.layer)
-
-    np.save(save_dir / "hsrf_sizes.npy", crf_sizes)
-
-    plt.figure()
-    plt.hist(crf_sizes, bins=10)
-    plt.xlim(0, 4)
-    plt.xlabel("SF Diameter\nAt Peak Response " r"($^\circ$)")
-    plt.ylabel("Proportion of units")
-    plt.savefig(save_dir / "hsrf_sizes.png", dpi=300, bbox_inches='tight')
-
-    # get surround sizes
-    surround_sizes = responses.get_surround_sizes(architecture=cfg.variant.architecture, layer=args.layer)
-
-    np.save(save_dir / "surround_sizes.npy", surround_sizes)
-
-    plt.figure()
-    plt.hist(surround_sizes, bins=10)
-    plt.xlabel("Surround Diameter\nAt Asymptote Response " r"($^\circ$)")
-    plt.ylabel("Proportion of units")
-    plt.savefig(save_dir / "surround_sizes.png", dpi=300, bbox_inches='tight')
+    plt.savefig(save_dir / "hsrf_curves.png", dpi=300, bbox_inches='tight')
 
 
 if __name__ == "__main__":
