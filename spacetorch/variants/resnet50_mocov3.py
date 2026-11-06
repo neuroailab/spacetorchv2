@@ -141,7 +141,7 @@ class ResNet50_MoCov3(BaseArch):
         self.eval_model = resnet50()
         if args.variant.params.pretrained_weights:
             self._load_pretrained_weights(args, self.eval_model)
-        self.eval_model.cuda()
+        self.eval_model.eval().cuda()
 
     def start_training_protocol(self, args):
         if self.cfg.dist_url == "env://" and self.cfg.world_size == -1:

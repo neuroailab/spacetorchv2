@@ -185,6 +185,7 @@ def get_features_from_layer(
     spatial_mp: bool = False,
     reshape: bool = True,
     reduce_along_hw: bool = False,
+    num_workers: int = 1,
 ) -> ReturnedFeatures:
     """Workhorse feature extractor.
 
@@ -199,6 +200,9 @@ def get_features_from_layer(
         return_inputs_and_labels: if True return a tuple with (Features, inputs, labels)
         shuffle: if True, shuffle the dataset before use
         verbose: whether to print progress with tqdm
+        num_workers: dataloader worker processes. The default of 1 is enough
+            for the small local stimulus sets, but reading ImageNet off network
+            storage is decode-bound and wants considerably more.
 
     Returns:
         ReturnedFeatures: either a tuple including features, inputs, and labels, or just
@@ -211,7 +215,11 @@ def get_features_from_layer(
 
     make_deterministic(seed=1)
     dataloader = DataLoader(
-        dataset, batch_size=batch_size, shuffle=shuffle, num_workers=1, pin_memory=True
+        dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        num_workers=num_workers,
+        pin_memory=True,
     )
 
     extractor = FeatureExtractor(
@@ -220,3 +228,75 @@ def get_features_from_layer(
     return extractor.extract_features(
         model, model_layer_strings, return_inputs_and_labels=return_inputs_and_labels, reshape=reshape, reduce_along_hw=reduce_along_hw
     )
+
+
+def get_pooled_features_from_layer(
+    model: nn.Module,
+    dataset: Dataset,
+    model_layer_strings: Union[str, List[str]],
+    reducer,
+    indices: Optional[np.ndarray] = None,
+    batch_size: int = 32,
+    chunk_size: int = 512,
+    num_workers: int = 1,
+    verbose: bool = True,
+) -> Tuple[Dict[str, np.ndarray], np.ndarray]:
+    """Extract features in chunks, reducing each chunk before the next is read.
+
+    ``get_features_from_layer`` holds every image's full feature map in memory
+    at once. That is fine for a late layer, but a single early convolutional
+    layer over a few thousand images runs to several gigabytes, and the orbit
+    analyses need the same stimuli through many models. This variant keeps only
+    ``chunk_size`` images of feature map alive at a time and stores the reduced
+    result, which for the privileged-axis analyses is a handful of numbers per
+    channel per image.
+
+    Several layers can be requested at once, and should be whenever more than
+    one is wanted from the same images: reading and decoding the stimuli
+    dominates the cost, so hooking four layers in one pass is close to four
+    times faster than four passes.
+
+    Inputs:
+        reducer: callable mapping (features, labels) for one chunk of one layer
+            to an array whose first dimension is the chunk's images
+        indices: optional subset of the dataset, used in the given order; the
+            same indices through two models therefore yield row-aligned
+            responses
+
+    Returns:
+        ({layer: reduced}, labels), concatenated over chunks in dataset order
+    """
+    from torch.utils.data import Subset
+
+    if not isinstance(model_layer_strings, list):
+        model_layer_strings = [model_layer_strings]
+
+    if indices is None:
+        indices = np.arange(len(dataset))  # type: ignore
+    indices = np.asarray(indices)
+
+    reduced_chunks: Dict[str, List[np.ndarray]] = {k: [] for k in model_layer_strings}
+    label_chunks = []
+    for start in range(0, len(indices), chunk_size):
+        chunk = indices[start : start + chunk_size]
+        if verbose:
+            print(f"images {start}-{start + len(chunk)} of {len(indices)}", flush=True)
+        features, _, labels = get_features_from_layer(
+            model,
+            Subset(dataset, chunk),
+            model_layer_strings=model_layer_strings,
+            batch_size=batch_size,
+            return_inputs_and_labels=True,
+            shuffle=False,
+            verbose=False,
+            num_workers=num_workers,
+        )
+        if not isinstance(features, dict):
+            features = {model_layer_strings[0]: features}
+        for layer_name, layer_features in features.items():
+            reduced_chunks[layer_name].append(reducer(layer_features, labels))
+        label_chunks.append(labels)
+        del features
+
+    reduced = {k: np.concatenate(v) for k, v in reduced_chunks.items()}
+    return reduced, np.concatenate(label_chunks)

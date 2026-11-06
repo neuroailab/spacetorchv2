@@ -1,5 +1,6 @@
 from .imagenet import ImageNetData, IMAGENET_TRANSFORMS, IMAGENET_TRANSFORMS_UNNORMALIZED
 from .sine_gratings import SineGrating2019
+from .gabor_patches import GaborPatches
 from .expanding_sine_gratings import ExpandingSineGrating2019
 from .tiled_sine_gratings import TiledSineGrating2019
 from .floc import fLocData
@@ -7,7 +8,19 @@ from .retinal_waves import RetinalWaveData, DEFAULT_RWAVE_DIRS
 from .noise import NoiseImages, NOISE_TRANSFORMS
 from .nsd import NSDImages, NSD_TRANSFORMS
 from .tvsd import TVSDImages, TVSD_TRANSFORMS, TVSD_TRANSFORMS_UNNORMALIZED
-from .discrimination import DiscriminationData, DISCRIMINATION_TRANSFORMS
+from .discrimination import (
+    DiscriminationData,
+    DiscriminationAttributes,
+    DISCRIMINATION_TRANSFORMS,
+    DISCRIMINATION_TRANSFORMS_EXACT,
+)
+from .contour import (
+    ContourData,
+    CONDITION_FACTORS,
+    CONTOUR_TRANSFORMS,
+    CONTOUR_TRANSFORMS_UNNORMALIZED,
+)
+from .formcat import formCatData
 
 import torchvision
 from spacetorch import paths
@@ -33,6 +46,8 @@ DEFAULT_TRANSFORMS_UNNORMALIZED = torchvision.transforms.Compose(
 
 
 _DATASETS = {
+    "GaborPatches": (GaborPatches, ()),
+    "GaborPatches_Unnormalized": (GaborPatches, (False,)),
     "SineGrating2019": (
         SineGrating2019,
         (paths.SINE_GRATING_2019_DIR, DEFAULT_TRANSFORMS),
@@ -55,6 +70,8 @@ _DATASETS = {
     ),
     "fLoc": (fLocData, (paths.FLOC_DIR, DEFAULT_TRANSFORMS)),
     "fLoc_Unnormalized": (fLocData, (paths.FLOC_DIR, DEFAULT_TRANSFORMS_UNNORMALIZED)),
+    "formCat": (formCatData, (paths.FORMCAT_DIR, IMAGENET_TRANSFORMS)),
+    "formCat_Unnormalized": (formCatData, (paths.FORMCAT_DIR, IMAGENET_TRANSFORMS_UNNORMALIZED)),
     "NSD": (NSDImages, (paths.NSD_PATH, NSD_TRANSFORMS)),
     "TVSD": (TVSDImages, (paths.TVSD_PATH, TVSD_TRANSFORMS)),
     "TVSD_Unnormalized": (TVSDImages, (paths.TVSD_PATH, TVSD_TRANSFORMS_UNNORMALIZED)),
@@ -77,6 +94,19 @@ _DATASETS = {
     "Discrimination_val": (
         DiscriminationData,
         (paths.DEFAULT_DISCRIMINATION_VAL_DIR, DISCRIMINATION_TRANSFORMS)
+    ),
+    "Discrimination_val_attributes": (
+        DiscriminationAttributes,
+        (paths.DEFAULT_DISCRIMINATION_VAL_DIR, DISCRIMINATION_TRANSFORMS_EXACT)
+    ),
+    "Contour_train": (
+        ContourData,
+        (paths.DEFAULT_CONTOUR_TRAIN_DIR, CONTOUR_TRANSFORMS),
+    ),
+    "Contour_val": (ContourData, (paths.DEFAULT_CONTOUR_VAL_DIR, CONTOUR_TRANSFORMS)),
+    "Contour_val_Unnormalized": (
+        ContourData,
+        (paths.DEFAULT_CONTOUR_VAL_DIR, CONTOUR_TRANSFORMS_UNNORMALIZED),
     ),
     "RetinalWaves": (RetinalWaveData, (DEFAULT_RWAVE_DIRS, DEFAULT_TRANSFORMS)),
     "noise": (NoiseImages, (640, NOISE_TRANSFORMS)),

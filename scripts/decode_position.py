@@ -23,7 +23,7 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument("--n_jobs", type=int, default=5, help="Parallel jobs for GridSearchCV")
     parser.add_argument("--tol", type=float, default=0.05,
                          help="Distance from corner-sampled background color, above which a pixel counts as foreground")
-    parser.add_argument("--mode", type=str, choices=["joint", "separate", "both"], default="both",
+    parser.add_argument("--mode", type=str, choices=["joint", "separate", "both"], default="joint",
                          help="'joint' fits one 4-dim probe for both objects at once; "
                               "'separate' fits two independent 2-dim probes, one per object; "
                               "'both' does both and logs each independently")

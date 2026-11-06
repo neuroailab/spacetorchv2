@@ -68,7 +68,7 @@ class SineGrating2019(Dataset):
 
     def __init__(self, sine_dir: str, transforms: Optional[ComposedTransforms] = None):
         self.transforms = transforms
-        self.file_list = sorted(glob.glob(f"{sine_dir}/*.jpg"))
+        self.file_list = sorted(glob.glob(f"{sine_dir}/images/*.jpg"))
 
         self.labels = np.zeros([len(self.file_list), 4], dtype=float)
         for img_idx, fname in enumerate(self.file_list):
@@ -214,3 +214,4 @@ class SineResponses:
         self._data = self._data.assign_coords(
             {"circular_variance": ("unit_idx", CV.data)}
         )
+

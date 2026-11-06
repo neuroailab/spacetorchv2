@@ -93,7 +93,7 @@ class AlexNetDeepCluster(BaseArch):
 
     def set_eval_model(self, args):
         self.eval_model = load_model(args.variant.params.pretrained_weights)
-        self.eval_model.cuda()
+        self.eval_model.eval().cuda()
 
     def start_training_protocol(self, args):
         main(self.cfg, args, self.positions, self.layernames, SpatialAlexNetDeepCluster)

@@ -130,7 +130,7 @@ class ResNet50_DINO(BaseArch):
         self.eval_model = resnet50()
         if args.variant.params.pretrained_weights:
             self._load_pretrained_weights(args, self.eval_model)
-        self.eval_model.cuda()
+        self.eval_model.eval().cuda()
 
 
     def start_training_protocol(self, args):

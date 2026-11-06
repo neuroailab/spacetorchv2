@@ -131,7 +131,7 @@ class ExpandingSineGrating2019(Dataset):
         self.gray_value = gray_value
         self.diameters = diameters if diameters is not None else EXPANDING_DIAMETERS
 
-        self.file_list = sorted(glob.glob(f"{sine_dir}/*.jpg"))
+        self.file_list = sorted(glob.glob(f"{sine_dir}/images/*.jpg"))
         n_images = len(self.file_list)
         n_diameters = len(self.diameters)
 
@@ -206,6 +206,8 @@ class ExpandingSineResponses:
         is_lcnn: bool = False,
     ):
         self.DVA_PER_IMAGE = DVA_PER_IMAGE
+        self.is_lcnn = is_lcnn
+        self.is_llcnn = is_llcnn
 
         if is_llcnn:
             f_shape = features.shape
@@ -344,7 +346,9 @@ class ExpandingSineResponses:
         unique_diams = np.unique(diams_vals)
 
         center_indices = self.get_indices_of_central_units(architecture=architecture, layer=layer)
-        os_indices = self.get_orientation_selective_indices(center_indices)
+        print(center_indices)
+        os_indices = self.get_orientation_selective_indices(center_indices) if not (self.is_lcnn or self.is_llcnn) else center_indices
+        print(os_indices)
 
         curves = np.zeros((len(unique_diams), len(os_indices)))
         for i, unit_idx in enumerate(os_indices):

@@ -65,10 +65,10 @@ class MAE(BaseArch):
             "batch_size": 512,
             "epochs": 90,
             "accum_iter": 1,
-            "model": "vit_base_patch16",
-            # "input_size": 224,
-            # "mask_ratio": 0.75,
-            # "norm_pix_loss": True,
+            "model": "mae_vit_base_patch16",
+            "input_size": 224,
+            "mask_ratio": 0.75,
+            "norm_pix_loss": True,
             "weight_decay": 0,
             "lr": None,
             "blr": 0.1,
@@ -130,13 +130,13 @@ class MAE(BaseArch):
 
     def set_eval_model(self, args):
         sys.path.insert(0, str(Path(args.variant.setup.model).parent))
-        models_vit = load_function_from_file(args.variant.setup.eval_model, "models_vit")
-        self.eval_model = models_vit.vit_base_patch16(
-            num_classes=1000,
-            global_pool=False,
-        )
-        # models_mae = load_function_from_file(args.variant.setup.eval_model, "models_mae")
-        # self.eval_model = models_mae.__dict__[self.eval_cfg.model](norm_pix_loss=self.eval_cfg.norm_pix_loss)
+        # models_vit = load_function_from_file(args.variant.setup.eval_model, "models_vit")
+        # self.eval_model = models_vit.vit_base_patch16(
+        #     num_classes=1000,
+        #     global_pool=False,
+        # )
+        models_mae = load_function_from_file(args.variant.setup.eval_model, "models_mae")
+        self.eval_model = models_mae.__dict__[self.eval_cfg.model](norm_pix_loss=self.eval_cfg.norm_pix_loss)
         if args.variant.params.pretrained_weights:
             self._load_pretrained_weights(args, self.eval_model)
         self.eval_model.cuda()

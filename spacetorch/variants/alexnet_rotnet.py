@@ -76,7 +76,7 @@ class AlexNetRotNet(BaseArch):
         self.eval_model = create_model(opt)
         if args.variant.params.pretrained_weights:
             self._load_pretrained_weights(args, self.eval_model)
-        self.eval_model.cuda()
+        self.eval_model.eval().cuda()
 
     def start_training_protocol(self, args):
         main(args, self.positions, self.layernames, args_opt=self.cfg)
