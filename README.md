@@ -1,6 +1,6 @@
 # A macrocircuit--macrocircuit framework
 
-[:link: Read the paper!](...)
+[:link: Read the preprint!](https://www.biorxiv.org/content/10.64898/2026.11.01.763457v1)
 
 ## Authors:
 * Yash Shah
@@ -15,9 +15,6 @@ This repository has the following components:
 * `analyses/`: code for data analysis
 
 Training and benchmarking scripts can be found under `spacetorch/run/...`
-
-## Model weights
-You can download model weights [here](...).
 
 ## Installation
 To install dependencies, follow the instructions in [INSTALL.md](INSTALL.md).
