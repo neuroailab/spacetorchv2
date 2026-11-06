@@ -16,6 +16,10 @@ This repository has the following components:
 
 Training and benchmarking scripts can be found under `spacetorch/run/...`
 
+Running files under analyses should take only a few minutes, unless the scripts run images through the models to extract model activations, which can take up to an hour in the absence of a GPU.
+
+In lieu of demos using simulated data, we have provided all configs that can directly be run to train models of various kinds. Simply call `spacetorch/run/train.py` with the appropriate `--config` argument.
+
 ## Installation
 To install dependencies, follow the instructions in [INSTALL.md](INSTALL.md).
 
